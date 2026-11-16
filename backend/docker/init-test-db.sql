@@ -1,0 +1,1 @@
+CREATE DATABASE field_monitoring_test;

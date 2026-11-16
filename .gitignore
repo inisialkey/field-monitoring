@@ -1,0 +1,17 @@
+.DS_Store
+.env
+node_modules/
+*.tsbuildinfo
+
+backend/.next/
+backend/generated/
+backend/uploads/
+backend/next-env.d.ts
+
+android/.gradle/
+android/.kotlin/
+android/.idea/
+android/local.properties
+android/captures/
+android/**/build/
+*.iml

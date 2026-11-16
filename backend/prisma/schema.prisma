@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  FIELD_OFFICER
+  EVALUATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum ReportStatus {
+  SUBMITTED
+  EVALUATED
+}
+
+enum Category {
+  ROAD
+  BRIDGE
+  DRAINAGE
+  STREET_LIGHT
+  TRAFFIC_SIGN
+  PUBLIC_FACILITY
+  OTHER
+}
+
+enum AttachmentKind {
+  PHOTO
+  DOCUMENT
+}
+
+enum EvaluationResult {
+  VALID
+  INVALID
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  username      String         @unique
+  displayName   String         @map("display_name")
+  role          Role
+  status        UserStatus     @default(ACTIVE)
+  passwordHash  String         @map("password_hash")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  refreshTokens RefreshToken[]
+  reports       Report[]
+  evaluations   Evaluation[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId  String    @map("device_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId, deviceId])
+  @@map("refresh_tokens")
+}
+
+model Report {
+  id                    String       @id @db.Uuid
+  ownerId               String       @map("owner_id") @db.Uuid
+  owner                 User         @relation(fields: [ownerId], references: [id])
+  title                 String       @db.VarChar(100)
+  category              Category
+  description           String       @db.VarChar(2000)
+  incidentAt            DateTime     @map("incident_at") @db.Timestamptz(3)
+  incidentOffsetMinutes Int          @map("incident_offset_minutes")
+  latitude              Float?
+  longitude             Float?
+  accuracyM             Float?       @map("accuracy_m")
+  locationCapturedAt    DateTime?    @map("location_captured_at") @db.Timestamptz(3)
+  locationNote          String?      @map("location_note") @db.VarChar(200)
+  status                ReportStatus @default(SUBMITTED)
+  createdAt             DateTime     @map("created_at") @db.Timestamptz(3)
+  receivedAt            DateTime     @default(now()) @map("received_at") @db.Timestamptz(3)
+  finalizedAt           DateTime?    @map("finalized_at") @db.Timestamptz(3)
+  attachments           Attachment[]
+  evaluation            Evaluation?
+
+  @@index([ownerId, createdAt])
+  @@index([status, finalizedAt])
+  @@map("reports")
+}
+
+model Attachment {
+  id         String         @id @db.Uuid
+  reportId   String         @map("report_id") @db.Uuid
+  report     Report         @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  kind       AttachmentKind
+  mimeType   String         @map("mime_type")
+  sizeBytes  Int            @map("size_bytes")
+  sha256     String         @db.Char(64)
+  storageKey String         @map("storage_key")
+  uploadedAt DateTime       @default(now()) @map("uploaded_at") @db.Timestamptz(3)
+
+  @@index([reportId])
+  @@map("attachments")
+}
+
+model Evaluation {
+  id          String           @id @default(uuid()) @db.Uuid
+  reportId    String           @unique @map("report_id") @db.Uuid
+  report      Report           @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  evaluatorId String           @map("evaluator_id") @db.Uuid
+  evaluator   User             @relation(fields: [evaluatorId], references: [id])
+  result      EvaluationResult
+  notes       String?          @db.VarChar(1000)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("evaluations")
+}
