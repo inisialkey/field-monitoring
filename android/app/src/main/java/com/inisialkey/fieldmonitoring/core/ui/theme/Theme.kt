@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -12,6 +13,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class StatusColors(
@@ -120,6 +122,8 @@ private val DarkColors = darkColorScheme(
     surfaceContainerHigh = Color(0xFF1E293B),
     surfaceContainerHighest = Color(0xFF334155),
 )
+
+private val AppTypography = Typography().run { copy(labelSmall = labelSmall.copy(fontSize = 12.sp, lineHeight = 16.sp)) }
 
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp),
