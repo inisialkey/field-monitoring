@@ -14,6 +14,7 @@ An offline-first Android app with a backend for reporting damage to public infra
 - Creates a report starting from photos (camera or gallery), then the GPS location or a written location note, category, title, description, and incident time. Drafts are saved automatically.
 - Submitted reports are sent in the background and retried when the connection comes back. Every report shows its status: draft, waiting, sending (with photo progress), sent, failed, or needs attention.
 - Sees the evaluation result on the report after the next sync.
+- Can delete a draft, or a report the server has not accepted (failed or needing attention), after confirming.
 
 **Evaluator**
 

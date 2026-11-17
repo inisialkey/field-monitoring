@@ -39,6 +39,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -83,6 +84,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inisialkey.fieldmonitoring.R
 import com.inisialkey.fieldmonitoring.core.ui.components.BackButton
+import com.inisialkey.fieldmonitoring.core.ui.components.DeleteDialog
 import com.inisialkey.fieldmonitoring.core.ui.components.FieldError
 import com.inisialkey.fieldmonitoring.core.ui.components.PhotoGrid
 import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
@@ -99,12 +101,12 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 @Composable
-fun ReportFormScreen(onBack: () -> Unit, onSubmitted: () -> Unit, viewModel: ReportFormViewModel = hiltViewModel()) {
+fun ReportFormScreen(onBack: () -> Unit, viewModel: ReportFormViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val resources = LocalResources.current
 
-    LaunchedEffect(state.submitted) { if (state.submitted) onSubmitted() }
+    LaunchedEffect(state.submitted, state.deleted) { if (state.submitted || state.deleted) onBack() }
     LaunchedEffect(state.message) {
         state.message?.let {
             snackbarHostState.showSnackbar(resources.getString(it))
@@ -128,6 +130,13 @@ fun ReportFormScreen(onBack: () -> Unit, onSubmitted: () -> Unit, viewModel: Rep
                     }
                 },
                 navigationIcon = { BackButton(onBack) },
+                actions = {
+                    if (state.saved) {
+                        IconButton(onClick = viewModel::onDeleteClick, enabled = !state.processingPhoto) {
+                            Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.delete_draft))
+                        }
+                    }
+                },
             )
         },
         bottomBar = {
@@ -152,6 +161,15 @@ fun ReportFormScreen(onBack: () -> Unit, onSubmitted: () -> Unit, viewModel: Rep
                 modifier = Modifier.padding(padding),
             )
         }
+    }
+
+    if (state.confirmingDelete) {
+        DeleteDialog(
+            title = stringResource(R.string.dialog_delete_draft_title),
+            message = stringResource(R.string.dialog_delete_draft_message),
+            onConfirm = viewModel::onDeleteConfirmed,
+            onDismiss = viewModel::onDeleteDismissed,
+        )
     }
 
     if (state.confirmingSubmit) {

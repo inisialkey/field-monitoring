@@ -4,6 +4,7 @@ import android.net.Uri
 import com.inisialkey.fieldmonitoring.core.network.ReportDto
 import com.inisialkey.fieldmonitoring.report.domain.Photo
 import com.inisialkey.fieldmonitoring.report.domain.Report
+import com.inisialkey.fieldmonitoring.report.domain.ReportRules
 import com.inisialkey.fieldmonitoring.report.domain.SyncState
 import com.inisialkey.fieldmonitoring.sync.SyncScheduler
 import java.util.UUID
@@ -47,6 +48,13 @@ class ReportRepository @Inject constructor(
     suspend fun submit(report: Report): Boolean {
         if (!dao.saveAndSubmit(report.toEntity())) return false
         syncScheduler.enqueue(report.ownerId)
+        return true
+    }
+
+    suspend fun deleteUnsent(report: Report): Boolean {
+        val paths = dao.localPhotoPaths(report.id)
+        if (dao.deleteInStates(report.id, report.ownerId, ReportRules.DELETABLE_STATES) == 0) return false
+        photos.delete(paths)
         return true
     }
 

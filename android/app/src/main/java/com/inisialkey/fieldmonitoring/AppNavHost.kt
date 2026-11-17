@@ -67,7 +67,7 @@ fun AppNavHost(initialSession: Session?, navController: NavHostController = reme
             )
         }
         composable<ReportForm> {
-            ReportFormScreen(onBack = { navController.popBackStack() }, onSubmitted = { navController.popBackStack() })
+            ReportFormScreen(onBack = { navController.popBackStack() })
         }
         composable<ReportDetail> {
             ReportDetailScreen(onBack = { navController.popBackStack() })

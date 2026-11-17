@@ -59,6 +59,8 @@ data class ReportFormUiState(
     val processingPhoto: Boolean = false,
     val confirmingSubmit: Boolean = false,
     val submitted: Boolean = false,
+    val confirmingDelete: Boolean = false,
+    val deleted: Boolean = false,
     @StringRes val message: Int? = null,
 )
 
@@ -187,9 +189,29 @@ class ReportFormViewModel @Inject constructor(
         }
     }
 
+    fun onDeleteClick() {
+        _state.update { it.copy(confirmingDelete = true) }
+    }
+
+    fun onDeleteDismissed() {
+        _state.update { it.copy(confirmingDelete = false) }
+    }
+
+    fun onDeleteConfirmed() {
+        _state.update { it.copy(confirmingDelete = false) }
+        saveJob?.cancel()
+        val report = _state.value.currentReport()
+        viewModelScope.launch {
+            if (reports.deleteUnsent(report)) {
+                _state.update { it.copy(deleted = true) }
+                userMessages.show(UserMessage(R.string.message_draft_deleted))
+            }
+        }
+    }
+
     override fun onCleared() {
         val state = _state.value
-        if (state.loading || state.submitted || !(dirty || state.saved)) return
+        if (state.loading || state.submitted || state.deleted || !(dirty || state.saved)) return
         val report = state.currentReport()
         appScope.launch {
             if (reports.saveDraft(report)) userMessages.show(UserMessage(R.string.message_draft_saved))
@@ -223,6 +245,7 @@ class ReportFormViewModel @Inject constructor(
     }
 
     private fun onEdited() {
+        if (_state.value.deleted) return
         dirty = true
         _state.update { it.revalidated() }
         saveJob?.cancel()

@@ -119,6 +119,16 @@
     <string name="message_submitted">Laporan disimpan dan akan dikirim otomatis.</string>
     <string name="message_draft_saved">Draft disimpan.</string>
     <string name="message_retry">Mencoba mengirim ulang %1$d laporan.</string>
+    <string name="message_draft_deleted">Draft dihapus.</string>
+    <string name="message_report_deleted">Laporan dihapus.</string>
+
+    <string name="action_delete">Hapus</string>
+    <string name="delete_draft">Hapus draft</string>
+    <string name="delete_report">Hapus laporan</string>
+    <string name="dialog_delete_draft_title">Hapus draft?</string>
+    <string name="dialog_delete_draft_message">Draft dan fotonya akan dihapus dari perangkat ini.</string>
+    <string name="dialog_delete_report_title">Hapus laporan?</string>
+    <string name="dialog_delete_report_message">Laporan ini belum diterima server. Laporan dan fotonya akan dihapus dari perangkat ini.</string>
 
     <string name="detail_title">Detail Laporan</string>
     <string name="detail_category">Kategori</string>

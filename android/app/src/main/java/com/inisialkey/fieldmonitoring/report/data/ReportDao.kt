@@ -44,6 +44,12 @@ interface ReportDao {
     )
     suspend fun deleteDraftAttachment(id: String, ownerId: String): Int
 
+    @Query("SELECT local_path FROM attachments WHERE report_id = :id AND local_path IS NOT NULL")
+    suspend fun localPhotoPaths(id: String): List<String>
+
+    @Query("DELETE FROM reports WHERE id = :id AND owner_id = :ownerId AND sync_state IN (:states)")
+    suspend fun deleteInStates(id: String, ownerId: String, states: Set<SyncState>): Int
+
     @Query("UPDATE reports SET sync_state = :state, attempt_count = :attempts, last_error = :error WHERE id = :id")
     suspend fun updateSyncState(id: String, state: SyncState, attempts: Int, error: String?)
 

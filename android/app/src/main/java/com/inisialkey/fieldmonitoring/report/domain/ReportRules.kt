@@ -13,6 +13,9 @@ object ReportRules {
     const val LOCATION_NOTE_MAX = 200
     const val MAX_PHOTOS = 5
     private val FUTURE_TOLERANCE: Duration = Duration.ofMinutes(10)
+    val DELETABLE_STATES = setOf(SyncState.DRAFT, SyncState.FAILED, SyncState.NEEDS_ATTENTION)
+
+    fun canDelete(report: Report): Boolean = report.syncState in DELETABLE_STATES
 
     fun validate(report: Report, now: Instant): Map<ReportField, FieldError> = buildMap {
         when {

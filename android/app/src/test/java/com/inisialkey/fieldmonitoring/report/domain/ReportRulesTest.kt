@@ -64,6 +64,12 @@ class ReportRulesTest {
     }
 
     @Test
+    fun `only reports the server has not accepted can be deleted`() {
+        val deletable = SyncState.entries.filter { ReportRules.canDelete(complete.copy(syncState = it)) }
+        assertEquals(listOf(SyncState.DRAFT, SyncState.FAILED, SyncState.NEEDS_ATTENTION), deletable)
+    }
+
+    @Test
     fun `errors follow the form order`() {
         val empty = Report.newDraft("report-2", "user-1", now, 420)
         assertEquals(
