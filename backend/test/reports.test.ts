@@ -77,7 +77,7 @@ describe("report submission", () => {
     const accepted = await putReport(
       session,
       randomUUID(),
-      reportBody(session.user.id, { location: null, locationNote: "Depan Pasar Baru" }),
+      reportBody(session.user.id, { location: null, locationNote: "Petak 3, Desa Pantai Bahagia" }),
     );
     expect(accepted.status).toBe(201);
   });

@@ -59,9 +59,9 @@ export function jpeg(size = 2048): Uint8Array<ArrayBuffer> {
 export function reportBody(ownerUserId: string, overrides: Record<string, unknown> = {}) {
   return {
     ownerUserId,
-    title: "Jalan berlubang depan SD Negeri 3",
-    category: "ROAD",
-    description: "Lubang selebar satu meter di lajur kiri.",
+    title: "Penanaman mangrove blok B",
+    category: "MANGROVE",
+    description: "Sebanyak 500 bibit tertanam, 20 bibit mati terbawa arus.",
     incidentAt: new Date(Date.now() - 60_000).toISOString(),
     incidentOffsetMinutes: 420,
     location: { latitude: -6.26152, longitude: 107.15283, accuracyM: 8, capturedAt: new Date().toISOString() },

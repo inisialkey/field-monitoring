@@ -11,9 +11,9 @@ class ReportRulesTest {
     private val now = Instant.parse("2026-11-16T02:00:00Z")
 
     private val complete = Report.newDraft("report-1", "user-1", now, 420).copy(
-        title = "Jalan berlubang depan SD Negeri 3",
-        category = Category.ROAD,
-        description = "Lubang selebar satu meter di lajur kiri.",
+        title = "Penanaman mangrove blok B",
+        category = Category.MANGROVE,
+        description = "Sebanyak 500 bibit tertanam, 20 bibit mati terbawa arus.",
         location = GeoPoint(-6.26152, 107.15283, 8f, now),
         photos = listOf(Photo("photo-1", "/data/photo-1.jpg", uploaded = false)),
     )
@@ -34,7 +34,7 @@ class ReportRulesTest {
     fun `location note is required only without coordinates`() {
         val withoutGps = complete.copy(location = null)
         assertEquals(FieldError.REQUIRED, ReportRules.validate(withoutGps, now)[ReportField.LOCATION_NOTE])
-        assertTrue(ReportRules.validate(withoutGps.copy(locationNote = "Depan Pasar Baru"), now).isEmpty())
+        assertTrue(ReportRules.validate(withoutGps.copy(locationNote = "Petak 3, Desa Pantai Bahagia"), now).isEmpty())
     }
 
     @Test

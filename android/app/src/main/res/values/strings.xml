@@ -8,7 +8,7 @@
     <string name="action_sign_in">Masuk</string>
     <string name="action_open_settings">Buka pengaturan</string>
 
-    <string name="login_subtitle">Monitoring dan evaluasi kerusakan infrastruktur publik</string>
+    <string name="login_subtitle">Monitoring dan evaluasi program lingkungan hidup</string>
     <string name="login_reauth_subtitle">Sesi Anda berakhir. Masuk lagi dengan akun yang sama untuk mengirim laporan.</string>
     <string name="login_username">Nama pengguna</string>
     <string name="login_password">Kata sandi</string>
@@ -57,12 +57,13 @@
     <string name="evaluation_valid">Valid</string>
     <string name="evaluation_invalid">Tidak valid</string>
 
-    <string name="category_road">Jalan</string>
-    <string name="category_bridge">Jembatan</string>
-    <string name="category_drainage">Drainase</string>
-    <string name="category_street_light">Lampu jalan</string>
-    <string name="category_traffic_sign">Rambu lalu lintas</string>
-    <string name="category_public_facility">Fasilitas umum</string>
+    <string name="category_forest_rehabilitation">Rehabilitasi hutan &amp; lahan</string>
+    <string name="category_mangrove">Mangrove</string>
+    <string name="category_peatland_restoration">Restorasi gambut</string>
+    <string name="category_social_forestry">Perhutanan sosial</string>
+    <string name="category_renewable_energy">Energi terbarukan</string>
+    <string name="category_waste_management">Pengelolaan sampah</string>
+    <string name="category_biodiversity">Keanekaragaman hayati</string>
     <string name="category_other">Lainnya</string>
 
     <string name="form_title_new">Laporan Baru</string>
@@ -85,16 +86,16 @@
     <string name="location_low_accuracy">Akurasi rendah (±%1$d m). Coba di area terbuka.</string>
     <string name="location_captured_at">Diambil %1$s</string>
     <string name="location_refresh">Perbarui</string>
-    <string name="location_approximate">Hanya lokasi perkiraan. Izinkan lokasi akurat agar titik kerusakan tepat.</string>
+    <string name="location_approximate">Hanya lokasi perkiraan. Izinkan lokasi akurat agar titik kegiatan tepat.</string>
     <string name="location_unavailable">Lokasi tidak tersedia.</string>
     <string name="field_location_note">Keterangan lokasi</string>
     <string name="field_location_note_required">Keterangan lokasi *</string>
     <string name="location_note_required_supporting">Wajib diisi karena lokasi GPS tidak tersedia.</string>
-    <string name="location_note_placeholder">Contoh: depan SD Negeri 3, Jl. Merdeka</string>
+    <string name="location_note_placeholder">Contoh: petak 3, Desa Pantai Bahagia</string>
     <string name="field_category">Kategori *</string>
     <string name="field_title">Judul *</string>
     <string name="field_description">Deskripsi *</string>
-    <string name="field_incident_time">Waktu kejadian *</string>
+    <string name="field_incident_time">Waktu pengamatan *</string>
     <string name="pick_date">Pilih tanggal</string>
     <string name="pick_time">Pilih jam</string>
     <string name="char_counter">%1$d/%2$d</string>
@@ -102,7 +103,7 @@
     <string name="error_photos_required">Tambahkan minimal 1 foto.</string>
     <string name="error_too_many_photos">Maksimal %1$d foto.</string>
     <string name="error_too_long">Maksimal %1$d karakter</string>
-    <string name="error_future_time">Waktu kejadian tidak boleh di masa depan.</string>
+    <string name="error_future_time">Waktu pengamatan tidak boleh di masa depan.</string>
     <string name="submit_report">Kirim laporan</string>
     <string name="dialog_submit_title">Kirim laporan?</string>
     <string name="dialog_submit_message">Laporan tidak bisa diubah setelah dikirim. Jika offline, laporan dikirim otomatis saat online.</string>
@@ -110,7 +111,7 @@
     <string name="dialog_send">Kirim</string>
     <string name="dialog_ok">OK</string>
     <string name="rationale_location_title">Izinkan lokasi</string>
-    <string name="rationale_location_message">Lokasi menandai titik kerusakan. Anda tetap bisa mengisi keterangan lokasi secara manual.</string>
+    <string name="rationale_location_message">Lokasi menandai titik kegiatan. Anda tetap bisa mengisi keterangan lokasi secara manual.</string>
     <string name="rationale_continue">Lanjutkan</string>
     <string name="rationale_manual">Isi manual</string>
 
@@ -130,7 +131,7 @@
 
     <string name="detail_title">Detail Laporan</string>
     <string name="detail_category">Kategori</string>
-    <string name="detail_incident_time">Waktu kejadian</string>
+    <string name="detail_incident_time">Waktu pengamatan</string>
     <string name="detail_location">Lokasi</string>
     <string name="detail_coordinates">%1$s (±%2$d m)</string>
     <string name="detail_location_note">Keterangan lokasi</string>
@@ -175,7 +176,7 @@
     <string name="field_label_title">judul</string>
     <string name="field_label_category">kategori</string>
     <string name="field_label_description">deskripsi</string>
-    <string name="field_label_incident_time">waktu kejadian</string>
+    <string name="field_label_incident_time">waktu pengamatan</string>
     <string name="field_label_location">lokasi</string>
     <string name="field_label_location_note">keterangan lokasi</string>
     <string name="greeting_morning">Selamat pagi</string>
@@ -193,7 +194,9 @@
     <string name="form_progress_title">Kelengkapan laporan</string>
     <string name="form_progress_ready">Laporan siap dikirim.</string>
     <string name="section_details">Detail laporan</string>
-    <string name="location_hint">Lokasi membantu evaluator menemukan titik kerusakan.</string>
+    <string name="location_hint">Lokasi membantu evaluator menemukan titik kegiatan.</string>
+    <string name="title_placeholder">Contoh: Penanaman mangrove blok B</string>
+    <string name="description_placeholder">Jelaskan kemajuan kegiatan dan temuan di lapangan.</string>
     <string name="detail_timeline">Perjalanan laporan</string>
     <string name="detail_info">Informasi laporan</string>
     <string name="timeline_created">Dibuat di perangkat</string>

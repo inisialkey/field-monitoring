@@ -334,6 +334,7 @@ private fun ReportFormContent(
             FormTextField(
                 state = viewModel.title,
                 label = stringResource(R.string.field_title),
+                placeholder = stringResource(R.string.title_placeholder),
                 error = state.errors[ReportField.TITLE]?.let { errorText(ReportField.TITLE, it) },
                 maxLength = ReportRules.TITLE_MAX,
                 showCounter = true,
@@ -342,6 +343,7 @@ private fun ReportFormContent(
             FormTextField(
                 state = viewModel.description,
                 label = stringResource(R.string.field_description),
+                placeholder = stringResource(R.string.description_placeholder),
                 error = state.errors[ReportField.DESCRIPTION]?.let { errorText(ReportField.DESCRIPTION, it) },
                 maxLength = ReportRules.DESCRIPTION_MAX,
                 showCounter = true,

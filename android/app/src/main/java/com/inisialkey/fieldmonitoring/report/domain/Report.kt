@@ -2,7 +2,16 @@ package com.inisialkey.fieldmonitoring.report.domain
 
 import java.time.Instant
 
-enum class Category { ROAD, BRIDGE, DRAINAGE, STREET_LIGHT, TRAFFIC_SIGN, PUBLIC_FACILITY, OTHER }
+enum class Category {
+    FOREST_REHABILITATION,
+    MANGROVE,
+    PEATLAND_RESTORATION,
+    SOCIAL_FORESTRY,
+    RENEWABLE_ENERGY,
+    WASTE_MANAGEMENT,
+    BIODIVERSITY,
+    OTHER,
+}
 
 enum class SyncState { DRAFT, PENDING_SYNC, SYNCING, SYNCED, FAILED, NEEDS_ATTENTION }
 

@@ -11,7 +11,16 @@ export const createReportSchema = z
   .object({
     ownerUserId: z.uuid(),
     title: z.string().trim().min(1).max(100),
-    category: z.enum(["ROAD", "BRIDGE", "DRAINAGE", "STREET_LIGHT", "TRAFFIC_SIGN", "PUBLIC_FACILITY", "OTHER"]),
+    category: z.enum([
+      "FOREST_REHABILITATION",
+      "MANGROVE",
+      "PEATLAND_RESTORATION",
+      "SOCIAL_FORESTRY",
+      "RENEWABLE_ENERGY",
+      "WASTE_MANAGEMENT",
+      "BIODIVERSITY",
+      "OTHER",
+    ]),
     description: z.string().trim().min(1).max(2000),
     incidentAt: z.iso.datetime({ offset: true }),
     incidentOffsetMinutes: z.number().int().min(-720).max(840),

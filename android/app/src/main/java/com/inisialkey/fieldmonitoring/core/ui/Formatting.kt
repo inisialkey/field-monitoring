@@ -40,23 +40,25 @@ fun GeoPoint.coordinates(): String = String.format(Locale.ROOT, "%.5f, %.5f", la
 
 @StringRes
 fun Category.labelRes(): Int = when (this) {
-    Category.ROAD -> R.string.category_road
-    Category.BRIDGE -> R.string.category_bridge
-    Category.DRAINAGE -> R.string.category_drainage
-    Category.STREET_LIGHT -> R.string.category_street_light
-    Category.TRAFFIC_SIGN -> R.string.category_traffic_sign
-    Category.PUBLIC_FACILITY -> R.string.category_public_facility
+    Category.FOREST_REHABILITATION -> R.string.category_forest_rehabilitation
+    Category.MANGROVE -> R.string.category_mangrove
+    Category.PEATLAND_RESTORATION -> R.string.category_peatland_restoration
+    Category.SOCIAL_FORESTRY -> R.string.category_social_forestry
+    Category.RENEWABLE_ENERGY -> R.string.category_renewable_energy
+    Category.WASTE_MANAGEMENT -> R.string.category_waste_management
+    Category.BIODIVERSITY -> R.string.category_biodiversity
     Category.OTHER -> R.string.category_other
 }
 
 @DrawableRes
 fun Category.iconRes(): Int = when (this) {
-    Category.ROAD -> R.drawable.ic_road
-    Category.BRIDGE -> R.drawable.ic_foundation
-    Category.DRAINAGE -> R.drawable.ic_water_drop
-    Category.STREET_LIGHT -> R.drawable.ic_light
-    Category.TRAFFIC_SIGN -> R.drawable.ic_signpost
-    Category.PUBLIC_FACILITY -> R.drawable.ic_apartment
+    Category.FOREST_REHABILITATION -> R.drawable.ic_forest
+    Category.MANGROVE -> R.drawable.ic_waves
+    Category.PEATLAND_RESTORATION -> R.drawable.ic_grass
+    Category.SOCIAL_FORESTRY -> R.drawable.ic_groups
+    Category.RENEWABLE_ENERGY -> R.drawable.ic_solar_power
+    Category.WASTE_MANAGEMENT -> R.drawable.ic_recycling
+    Category.BIODIVERSITY -> R.drawable.ic_pets
     Category.OTHER -> R.drawable.ic_category
 }
 

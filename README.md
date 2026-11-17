@@ -1,6 +1,6 @@
 # Field Monitoring & Evaluation
 
-An offline-first Android app with a backend for reporting damage to public infrastructure such as roads, bridges, drainage, and street lights. Field Officers create reports with photos and a location, with or without a connection. Evaluators review submitted reports and mark them valid or invalid. The app's interface is in Indonesian.
+An offline-first Android app with a backend for monitoring and evaluating environmental programs funded by BPDLH (Badan Pengelola Dana Lingkungan Hidup, the Indonesian Environment Fund), such as mangrove planting, forest rehabilitation, and peatland restoration. Field Officers visit program sites and submit reports with photos and a location, with or without a connection, since many sites have no signal. Evaluators review submitted reports and mark them valid or invalid. The app's interface is in Indonesian.
 
 - **Android:** Kotlin, Jetpack Compose, Material 3, Hilt, Room, WorkManager, Retrofit, OkHttp, Coil
 - **Backend:** Next.js Route Handlers, TypeScript, Prisma, PostgreSQL, Zod, JWT
@@ -11,7 +11,8 @@ An offline-first Android app with a backend for reporting damage to public infra
 **Field Officer**
 
 - Signs in once while online. The session stays on the device until logout, so the app keeps working offline.
-- Creates a report starting from photos (camera or gallery), then the GPS location or a written location note, category, title, description, and incident time. Drafts are saved automatically.
+- Creates a report starting from photos (camera or gallery), then the GPS location or a written location note, program category, title, description, and observation time. Drafts are saved automatically.
+- Chooses from BPDLH program categories: forest and land rehabilitation, mangrove, peatland restoration, social forestry, renewable energy, waste management, biodiversity, and other.
 - Submitted reports are sent in the background and retried when the connection comes back. Every report shows its status: draft, waiting, sending (with photo progress), sent, failed, or needs attention.
 - Sees the evaluation result on the report after the next sync.
 - Can delete a draft, or a report the server has not accepted (failed or needing attention), after confirming.
