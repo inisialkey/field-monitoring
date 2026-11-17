@@ -134,7 +134,6 @@ dependencies {
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     ksp(libs.androidx.hilt.compiler)
 
-    implementation(libs.androidx.biometric)
     implementation(libs.androidx.exifinterface)
     implementation(libs.play.services.location)
     implementation(libs.kotlinx.coroutines.play.services)
