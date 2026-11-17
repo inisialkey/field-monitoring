@@ -8,8 +8,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -228,7 +230,12 @@ private fun EvaluationForm(state: EvaluateUiState, viewModel: EvaluateViewModel)
     val colors = MaterialTheme.colorScheme
     val notesError = state.errors[EvaluationField.NOTES]
 
-    Row(modifier = Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(
+        modifier = Modifier
+            .height(IntrinsicSize.Min)
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         DecisionCard(
             selected = state.result == EvaluationResult.VALID,
             title = stringResource(R.string.evaluation_valid),
@@ -238,7 +245,9 @@ private fun EvaluationForm(state: EvaluateUiState, viewModel: EvaluateViewModel)
             content = app.onSuccessContainer,
             accent = app.success,
             onClick = { viewModel.onResultSelected(EvaluationResult.VALID) },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
         )
         DecisionCard(
             selected = state.result == EvaluationResult.INVALID,
@@ -249,7 +258,9 @@ private fun EvaluationForm(state: EvaluateUiState, viewModel: EvaluateViewModel)
             content = colors.onErrorContainer,
             accent = colors.error,
             onClick = { viewModel.onResultSelected(EvaluationResult.INVALID) },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
         )
     }
     if (state.errors[EvaluationField.RESULT] != null) FieldError(stringResource(R.string.error_result_required))
