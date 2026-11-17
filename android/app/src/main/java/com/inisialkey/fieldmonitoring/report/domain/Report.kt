@@ -55,6 +55,27 @@ data class Report(
     val isUnsent: Boolean
         get() = syncState in setOf(SyncState.PENDING_SYNC, SyncState.SYNCING, SyncState.FAILED, SyncState.NEEDS_ATTENTION)
 
+    val canDelete: Boolean
+        get() = syncState in ReportRules.DELETABLE_STATES
+
+    fun validate(now: Instant): Map<ReportField, FieldError> = buildMap {
+        when {
+            photos.isEmpty() -> put(ReportField.PHOTOS, FieldError.REQUIRED)
+            photos.size > ReportRules.MAX_PHOTOS -> put(ReportField.PHOTOS, FieldError.TOO_MANY)
+        }
+        when {
+            location == null && locationNote.isBlank() -> put(ReportField.LOCATION_NOTE, FieldError.REQUIRED)
+            locationNote.trim().length > ReportRules.LOCATION_NOTE_MAX -> put(ReportField.LOCATION_NOTE, FieldError.TOO_LONG)
+        }
+        if (category == null) put(ReportField.CATEGORY, FieldError.REQUIRED)
+        textError(title, ReportRules.TITLE_MAX)?.let { put(ReportField.TITLE, it) }
+        textError(description, ReportRules.DESCRIPTION_MAX)?.let { put(ReportField.DESCRIPTION, it) }
+        if (incidentAt.isAfter(now.plus(ReportRules.FUTURE_TOLERANCE))) put(ReportField.INCIDENT_TIME, FieldError.IN_FUTURE)
+    }
+
+    fun submit(now: Instant): Report? =
+        if (syncState == SyncState.DRAFT && validate(now).isEmpty()) copy(syncState = SyncState.PENDING_SYNC, lastError = null) else null
+
     companion object {
         fun newDraft(id: String, ownerId: String, now: Instant, offsetMinutes: Int) = Report(
             id = id,
@@ -74,4 +95,10 @@ data class Report(
             evaluation = null,
         )
     }
+}
+
+private fun textError(value: String, max: Int): FieldError? = when {
+    value.isBlank() -> FieldError.REQUIRED
+    value.trim().length > max -> FieldError.TOO_LONG
+    else -> null
 }

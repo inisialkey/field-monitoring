@@ -258,7 +258,7 @@ private fun ReportFormContent(
         locationNote = viewModel.locationNote.text.toString(),
     )
     val total = ReportField.entries.size
-    val filled = total - ReportRules.validate(current, Instant.now()).size
+    val filled = total - current.validate(Instant.now()).size
 
     Column(
         modifier = modifier

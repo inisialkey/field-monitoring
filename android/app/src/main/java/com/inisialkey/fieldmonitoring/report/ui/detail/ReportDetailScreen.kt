@@ -39,7 +39,6 @@ import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
 import com.inisialkey.fieldmonitoring.report.data.ReportRepository
 import com.inisialkey.fieldmonitoring.report.domain.Photo
 import com.inisialkey.fieldmonitoring.report.domain.Report
-import com.inisialkey.fieldmonitoring.report.domain.ReportRules
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,7 +88,7 @@ fun ReportDetailScreen(onBack: () -> Unit, viewModel: ReportDetailViewModel = hi
                 title = { Text(stringResource(R.string.detail_title)) },
                 navigationIcon = { BackButton(onBack) },
                 actions = {
-                    if (report?.let(ReportRules::canDelete) == true) {
+                    if (report?.canDelete == true) {
                         IconButton(onClick = { confirmingDelete = true }) {
                             Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.delete_report))
                         }

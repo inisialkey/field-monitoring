@@ -198,7 +198,7 @@ class ReportFormViewModel @Inject constructor(
     }
 
     fun onSubmitClick() {
-        val errors = ReportRules.validate(_state.value.currentReport(), Instant.now())
+        val errors = _state.value.currentReport().validate(Instant.now())
         _state.update {
             it.copy(
                 errors = errors,
@@ -294,7 +294,7 @@ class ReportFormViewModel @Inject constructor(
     }
 
     private fun ReportFormUiState.revalidated(): ReportFormUiState =
-        if (errors.isEmpty()) this else copy(errors = ReportRules.validate(currentReport(), Instant.now()))
+        if (errors.isEmpty()) this else copy(errors = currentReport().validate(Instant.now()))
 
     private fun ReportFormUiState.currentReport(): Report = report.copy(
         title = title.text.toString(),

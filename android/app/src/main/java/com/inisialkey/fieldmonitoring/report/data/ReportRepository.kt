@@ -7,6 +7,7 @@ import com.inisialkey.fieldmonitoring.report.domain.Report
 import com.inisialkey.fieldmonitoring.report.domain.ReportRules
 import com.inisialkey.fieldmonitoring.report.domain.SyncState
 import com.inisialkey.fieldmonitoring.sync.SyncScheduler
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -46,7 +47,8 @@ class ReportRepository @Inject constructor(
     }
 
     suspend fun submit(report: Report): Boolean {
-        if (!dao.saveAndSubmit(report.toEntity())) return false
+        val submitted = report.submit(Instant.now()) ?: return false
+        if (!dao.saveAndSubmit(submitted.toEntity())) return false
         syncScheduler.enqueue(report.ownerId)
         return true
     }
