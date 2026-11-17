@@ -167,8 +167,8 @@ fun EvaluationQueueScreen(
                         state.reports.isEmpty() -> item {
                             EmptyState(
                                 icon = R.drawable.ic_task_alt,
-                                title = stringResource(R.string.queue_empty_title),
-                                message = stringResource(R.string.queue_empty_message),
+                                title = stringResource(R.string.queue_empty_message),
+                                message = "",
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }

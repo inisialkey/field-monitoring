@@ -144,7 +144,6 @@
     <string name="detail_invalid_hint">Buat laporan baru jika ada informasi tambahan.</string>
 
     <string name="queue_title">Menunggu Evaluasi</string>
-    <string name="queue_empty_title">Semua beres</string>
     <string name="queue_empty_message">Tidak ada laporan yang menunggu evaluasi.</string>
     <string name="loading_reports">Memuat laporan…</string>
     <string name="offline_title">Butuh koneksi internet</string>
