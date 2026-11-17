@@ -65,8 +65,8 @@ fun SyncStatusChip(report: Report, modifier: Modifier = Modifier) {
         SyncState.SYNCING -> StatusPill(
             stringResource(R.string.sync_syncing_progress, report.photos.count { it.uploaded }, report.photos.size),
             R.drawable.ic_sync,
-            colors.primaryContainer,
-            colors.onPrimaryContainer,
+            colors.tertiaryContainer,
+            colors.onTertiaryContainer,
             modifier,
         )
         SyncState.SYNCED -> StatusPill(

@@ -184,7 +184,7 @@ private fun ConnectivityBanner(banner: Banner, onRetry: () -> Unit, onSignIn: ()
             colors.surfaceContainerHigh, colors.onSurface, R.drawable.ic_cloud_off, stringResource(R.string.banner_offline),
         )
         is Banner.Sending -> BannerStyle(
-            colors.primaryContainer, colors.onPrimaryContainer, R.drawable.ic_sync, stringResource(R.string.banner_sending, banner.count),
+            colors.tertiaryContainer, colors.onTertiaryContainer, R.drawable.ic_sync, stringResource(R.string.banner_sending, banner.count),
         )
     }
     Surface(
