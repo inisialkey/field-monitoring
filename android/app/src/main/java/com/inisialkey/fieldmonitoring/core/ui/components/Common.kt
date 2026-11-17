@@ -1,7 +1,9 @@
 package com.inisialkey.fieldmonitoring.core.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,9 +28,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.inisialkey.fieldmonitoring.R
+import com.inisialkey.fieldmonitoring.core.ui.theme.LocalAppColors
 
 fun Modifier.contentWidth(): Modifier =
     fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = 600.dp).fillMaxWidth()
@@ -81,26 +86,44 @@ fun EmptyState(
     actionLabel: String? = null,
     onAction: () -> Unit = {},
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(
-        modifier = modifier.padding(32.dp),
+        modifier = modifier.padding(horizontal = 24.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(
-            painterResource(icon),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(48.dp),
-        )
-        Text(title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        Box(modifier = Modifier.size(128.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .size(128.dp)
+                    .background(colors.primaryContainer.copy(alpha = 0.5f), CircleShape),
+            )
+            Box(
+                Modifier
+                    .size(92.dp)
+                    .background(colors.primaryContainer, CircleShape),
+            )
+            Icon(painterResource(icon), contentDescription = null, tint = colors.primary, modifier = Modifier.size(44.dp))
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 10.dp, end = 10.dp)
+                    .size(18.dp)
+                    .background(LocalAppColors.current.accent, CircleShape),
+            )
+        }
         Text(
-            message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
         )
+        if (message.isNotEmpty()) {
+            Text(message, style = MaterialTheme.typography.bodyLarge, color = colors.onSurfaceVariant, textAlign = TextAlign.Center)
+        }
         if (actionLabel != null) {
-            Button(onClick = onAction, modifier = Modifier.padding(top = 8.dp)) { Text(actionLabel) }
+            Button(onClick = onAction, modifier = Modifier.padding(top = 12.dp)) { Text(actionLabel) }
         }
     }
 }

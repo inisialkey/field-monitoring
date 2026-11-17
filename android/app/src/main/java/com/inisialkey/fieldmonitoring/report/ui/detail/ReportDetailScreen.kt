@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -33,8 +34,10 @@ import com.inisialkey.fieldmonitoring.core.UserMessage
 import com.inisialkey.fieldmonitoring.core.UserMessages
 import com.inisialkey.fieldmonitoring.core.ui.components.BackButton
 import com.inisialkey.fieldmonitoring.core.ui.components.DeleteDialog
+import com.inisialkey.fieldmonitoring.core.ui.components.FullScreenPhoto
 import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
 import com.inisialkey.fieldmonitoring.report.data.ReportRepository
+import com.inisialkey.fieldmonitoring.report.domain.Photo
 import com.inisialkey.fieldmonitoring.report.domain.Report
 import com.inisialkey.fieldmonitoring.report.domain.ReportRules
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -76,6 +79,7 @@ fun ReportDetailScreen(onBack: () -> Unit, viewModel: ReportDetailViewModel = hi
     val report by viewModel.report.collectAsStateWithLifecycle()
     val deleted by viewModel.deleted.collectAsStateWithLifecycle()
     var confirmingDelete by rememberSaveable { mutableStateOf(false) }
+    var openPhoto by remember { mutableStateOf<Photo?>(null) }
 
     LaunchedEffect(deleted) { if (deleted) onBack() }
 
@@ -101,12 +105,14 @@ fun ReportDetailScreen(onBack: () -> Unit, viewModel: ReportDetailViewModel = hi
                     .verticalScroll(rememberScrollState())
                     .contentWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                ReportDetailSections(it, forOwner = true)
+                ReportDetailSections(it, forOwner = true, onOpenPhoto = { photo -> openPhoto = photo })
             }
         }
     }
+
+    openPhoto?.let { FullScreenPhoto(it, onDismiss = { openPhoto = null }) }
 
     if (confirmingDelete) {
         DeleteDialog(

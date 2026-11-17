@@ -1,6 +1,5 @@
 package com.inisialkey.fieldmonitoring.core.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,26 +9,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.inisialkey.fieldmonitoring.BuildConfig
 import com.inisialkey.fieldmonitoring.R
 import com.inisialkey.fieldmonitoring.core.ui.coordinates
 import com.inisialkey.fieldmonitoring.core.ui.formatDateTime
+import com.inisialkey.fieldmonitoring.core.ui.iconRes
 import com.inisialkey.fieldmonitoring.core.ui.labelRes
 import com.inisialkey.fieldmonitoring.report.domain.Photo
 import com.inisialkey.fieldmonitoring.report.domain.Report
@@ -72,66 +77,82 @@ fun locationSummary(report: Report): String {
 @Composable
 fun ReportCard(report: Report, onClick: () -> Unit, modifier: Modifier = Modifier, showReporter: Boolean = false) {
     val colors = MaterialTheme.colorScheme
-    OutlinedCard(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.outlinedCardColors(containerColor = colors.surfaceContainerLowest),
-        border = BorderStroke(1.dp, colors.outlineVariant),
-    ) {
-        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            PhotoThumbnail(report.photos.firstOrNull(), Modifier.size(64.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = report.title.ifBlank { stringResource(R.string.report_untitled) },
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (report.syncState == SyncState.DRAFT && report.lastError != null) {
-                    Text(report.lastError, style = MaterialTheme.typography.bodyMedium, color = colors.error)
+    val category = report.category
+    AppCard(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box {
+                PhotoThumbnail(report.photos.firstOrNull(), Modifier.size(88.dp))
+                if (category != null) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(6.dp)
+                            .size(28.dp)
+                            .background(Color.White, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painterResource(category.iconRes()),
+                            contentDescription = null,
+                            tint = Color(0xFF016F33),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
                 }
-                if (showReporter && report.reporterName != null) {
-                    Text(report.reporterName, style = MaterialTheme.typography.bodyMedium)
-                }
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = listOfNotNull(
-                        report.category?.let { stringResource(it.labelRes()) },
-                        formatDateTime(report.incidentAt, report.incidentOffsetMinutes),
-                    ).joinToString(" · "),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.onSurfaceVariant,
-                )
-                Text(
-                    text = locationSummary(report),
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = buildAnnotatedString {
+                        if (category != null) {
+                            withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.SemiBold)) {
+                                append(stringResource(category.labelRes()))
+                            }
+                            append("  ·  ")
+                        }
+                        append(formatDateTime(report.incidentAt, report.incidentOffsetMinutes))
+                    },
+                    style = MaterialTheme.typography.labelMedium,
                     color = colors.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = stringResource(R.string.photo_count, report.photos.size),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.onSurfaceVariant,
+                    text = report.title.ifBlank { stringResource(R.string.report_untitled) },
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                if (!showReporter) {
-                    FlowRow(
-                        modifier = Modifier.padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        SyncStatusChip(report)
-                        if (report.syncState == SyncState.SYNCED) EvaluationBadge(report.evaluation)
+                if (report.syncState == SyncState.DRAFT && report.lastError != null) {
+                    Text(report.lastError, style = MaterialTheme.typography.bodySmall, color = colors.error)
+                }
+                if (showReporter && report.reporterName != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Avatar(report.reporterName, size = 24.dp)
+                        Text(report.reporterName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                if (report.syncState == SyncState.SYNCING && report.photos.isNotEmpty()) {
-                    LinearProgressIndicator(
-                        progress = { report.photos.count { it.uploaded }.toFloat() / report.photos.size },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp),
-                    )
+                IconText(R.drawable.ic_location_on, locationSummary(report))
+                FlowRow(
+                    modifier = Modifier.padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (!showReporter) SyncStatusChip(report)
+                    if (!showReporter && report.syncState == SyncState.SYNCED) EvaluationBadge(report.evaluation)
+                    IconText(R.drawable.ic_image, stringResource(R.string.photo_count, report.photos.size))
                 }
             }
+        }
+        if (report.syncState == SyncState.SYNCING && report.photos.isNotEmpty()) {
+            LinearProgressIndicator(
+                progress = { report.photos.count { it.uploaded }.toFloat() / report.photos.size },
+                strokeCap = StrokeCap.Round,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+            )
         }
     }
 }

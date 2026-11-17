@@ -11,18 +11,21 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -38,8 +41,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -49,6 +54,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldLabelPosition
@@ -64,9 +70,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
@@ -74,6 +82,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -83,13 +92,16 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inisialkey.fieldmonitoring.R
+import com.inisialkey.fieldmonitoring.core.ui.components.AppCard
 import com.inisialkey.fieldmonitoring.core.ui.components.BackButton
 import com.inisialkey.fieldmonitoring.core.ui.components.DeleteDialog
 import com.inisialkey.fieldmonitoring.core.ui.components.FieldError
 import com.inisialkey.fieldmonitoring.core.ui.components.PhotoGrid
+import com.inisialkey.fieldmonitoring.core.ui.components.SectionCard
 import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
 import com.inisialkey.fieldmonitoring.core.ui.formatDate
 import com.inisialkey.fieldmonitoring.core.ui.formatTime
+import com.inisialkey.fieldmonitoring.core.ui.iconRes
 import com.inisialkey.fieldmonitoring.core.ui.labelRes
 import com.inisialkey.fieldmonitoring.report.domain.Category
 import com.inisialkey.fieldmonitoring.report.domain.FieldError as ReportFieldError
@@ -140,15 +152,23 @@ fun ReportFormScreen(onBack: () -> Unit, viewModel: ReportFormViewModel = hiltVi
             )
         },
         bottomBar = {
-            Button(
-                onClick = viewModel::onSubmitClick,
-                enabled = !state.loading,
-                modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-                    .contentWidth()
-                    .padding(16.dp),
-            ) {
-                Text(stringResource(R.string.submit_report))
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerLowest, shadowElevation = 8.dp) {
+                Button(
+                    onClick = viewModel::onSubmitClick,
+                    enabled = !state.loading,
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                        .contentWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .height(56.dp),
+                ) {
+                    Icon(painterResource(R.drawable.ic_send), contentDescription = null, modifier = Modifier.size(20.dp))
+                    Text(
+                        stringResource(R.string.submit_report),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(start = 10.dp),
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -232,21 +252,26 @@ private fun ReportFormContent(
         }
     }
 
+    val current = report.copy(
+        title = viewModel.title.text.toString(),
+        description = viewModel.description.text.toString(),
+        locationNote = viewModel.locationNote.text.toString(),
+    )
+    val total = ReportField.entries.size
+    val filled = total - ReportRules.validate(current, Instant.now()).size
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
             .contentWidth()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            stringResource(R.string.form_required_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        CompletenessCard(filled = filled, total = total)
 
-        Section(
-            label = stringResource(R.string.field_photos),
+        SectionCard(
+            number = 1,
+            title = stringResource(R.string.field_photos),
             trailing = stringResource(R.string.photo_counter, report.photos.size, ReportRules.MAX_PHOTOS),
             error = state.errors[ReportField.PHOTOS]?.let { errorText(ReportField.PHOTOS, it) },
             modifier = Modifier.bringIntoViewRequester(sections.getValue(ReportField.PHOTOS)),
@@ -260,27 +285,29 @@ private fun ReportFormContent(
             )
         }
 
-        LocationField(
-            status = state.location,
-            location = report.location,
-            onRequest = requestLocation,
-            onOpenSettings = openSettings,
-        )
+        SectionCard(number = 2, title = stringResource(R.string.field_location)) {
+            LocationField(
+                status = state.location,
+                location = report.location,
+                onRequest = requestLocation,
+                onOpenSettings = openSettings,
+            )
+            FormTextField(
+                state = viewModel.locationNote,
+                label = stringResource(
+                    if (report.location == null) R.string.field_location_note_required else R.string.field_location_note,
+                ),
+                error = state.errors[ReportField.LOCATION_NOTE]?.let { errorText(ReportField.LOCATION_NOTE, it) },
+                supporting = if (report.location == null) stringResource(R.string.location_note_required_supporting) else null,
+                placeholder = stringResource(R.string.location_note_placeholder),
+                maxLength = ReportRules.LOCATION_NOTE_MAX,
+                focusRequester = focus.getValue(ReportField.LOCATION_NOTE),
+            )
+        }
 
-        FormTextField(
-            state = viewModel.locationNote,
-            label = stringResource(
-                if (report.location == null) R.string.field_location_note_required else R.string.field_location_note,
-            ),
-            error = state.errors[ReportField.LOCATION_NOTE]?.let { errorText(ReportField.LOCATION_NOTE, it) },
-            supporting = if (report.location == null) stringResource(R.string.location_note_required_supporting) else null,
-            placeholder = stringResource(R.string.location_note_placeholder),
-            maxLength = ReportRules.LOCATION_NOTE_MAX,
-            focusRequester = focus.getValue(ReportField.LOCATION_NOTE),
-        )
-
-        Section(
-            label = stringResource(R.string.field_category),
+        SectionCard(
+            number = 3,
+            title = stringResource(R.string.field_category),
             error = state.errors[ReportField.CATEGORY]?.let { errorText(ReportField.CATEGORY, it) },
             modifier = Modifier.bringIntoViewRequester(sections.getValue(ReportField.CATEGORY)),
         ) {
@@ -291,37 +318,41 @@ private fun ReportFormContent(
                         selected = selected,
                         onClick = { viewModel.onCategorySelected(category) },
                         label = { Text(stringResource(category.labelRes())) },
-                        leadingIcon = if (selected) {
-                            { Icon(painterResource(R.drawable.ic_check), contentDescription = null) }
-                        } else {
-                            null
+                        leadingIcon = {
+                            Icon(
+                                painterResource(if (selected) R.drawable.ic_check else category.iconRes()),
+                                contentDescription = null,
+                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            )
                         },
                     )
                 }
             }
         }
 
-        FormTextField(
-            state = viewModel.title,
-            label = stringResource(R.string.field_title),
-            error = state.errors[ReportField.TITLE]?.let { errorText(ReportField.TITLE, it) },
-            maxLength = ReportRules.TITLE_MAX,
-            showCounter = true,
-            focusRequester = focus.getValue(ReportField.TITLE),
-        )
+        SectionCard(number = 4, title = stringResource(R.string.section_details)) {
+            FormTextField(
+                state = viewModel.title,
+                label = stringResource(R.string.field_title),
+                error = state.errors[ReportField.TITLE]?.let { errorText(ReportField.TITLE, it) },
+                maxLength = ReportRules.TITLE_MAX,
+                showCounter = true,
+                focusRequester = focus.getValue(ReportField.TITLE),
+            )
+            FormTextField(
+                state = viewModel.description,
+                label = stringResource(R.string.field_description),
+                error = state.errors[ReportField.DESCRIPTION]?.let { errorText(ReportField.DESCRIPTION, it) },
+                maxLength = ReportRules.DESCRIPTION_MAX,
+                showCounter = true,
+                singleLine = false,
+                focusRequester = focus.getValue(ReportField.DESCRIPTION),
+            )
+        }
 
-        FormTextField(
-            state = viewModel.description,
-            label = stringResource(R.string.field_description),
-            error = state.errors[ReportField.DESCRIPTION]?.let { errorText(ReportField.DESCRIPTION, it) },
-            maxLength = ReportRules.DESCRIPTION_MAX,
-            showCounter = true,
-            singleLine = false,
-            focusRequester = focus.getValue(ReportField.DESCRIPTION),
-        )
-
-        Section(
-            label = stringResource(R.string.field_incident_time),
+        SectionCard(
+            number = 5,
+            title = stringResource(R.string.field_incident_time),
             error = state.errors[ReportField.INCIDENT_TIME]?.let { errorText(ReportField.INCIDENT_TIME, it) },
             modifier = Modifier.bringIntoViewRequester(sections.getValue(ReportField.INCIDENT_TIME)),
         ) {
@@ -379,22 +410,40 @@ private fun ReportFormContent(
 }
 
 @Composable
-private fun Section(
-    label: String,
-    modifier: Modifier = Modifier,
-    trailing: String? = null,
-    error: String? = null,
-    content: @Composable () -> Unit,
-) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row {
-            Text(label, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-            if (trailing != null) {
-                Text(trailing, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun CompletenessCard(filled: Int, total: Int) {
+    val progress by animateFloatAsState(filled / total.toFloat(), label = "completeness")
+    AppCard(Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.form_progress_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    "$filled/$total",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
+            LinearProgressIndicator(
+                progress = { progress },
+                strokeCap = StrokeCap.Round,
+                trackColor = MaterialTheme.colorScheme.primaryContainer,
+                gapSize = 0.dp,
+                drawStopIndicator = {},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp),
+            )
+            Text(
+                stringResource(if (filled == total) R.string.form_progress_ready else R.string.form_required_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        content()
-        if (error != null) FieldError(error)
     }
 }
 

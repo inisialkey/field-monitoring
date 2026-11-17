@@ -1,23 +1,24 @@
 package com.inisialkey.fieldmonitoring.report.ui.list
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,31 +27,46 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inisialkey.fieldmonitoring.R
-import com.inisialkey.fieldmonitoring.auth.ui.AccountMenu
+import com.inisialkey.fieldmonitoring.auth.ui.AccountHeader
+import com.inisialkey.fieldmonitoring.core.ui.components.ConnectivityPill
 import com.inisialkey.fieldmonitoring.core.ui.components.EmptyState
+import com.inisialkey.fieldmonitoring.core.ui.components.HeroHeader
+import com.inisialkey.fieldmonitoring.core.ui.components.IconBadge
 import com.inisialkey.fieldmonitoring.core.ui.components.ReportCard
+import com.inisialkey.fieldmonitoring.core.ui.components.StatTile
+import com.inisialkey.fieldmonitoring.core.ui.components.StatusBarScrim
 import com.inisialkey.fieldmonitoring.core.ui.components.UserMessageEffect
 import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
-import com.inisialkey.fieldmonitoring.core.ui.theme.LocalStatusColors
+import com.inisialkey.fieldmonitoring.core.ui.theme.LocalAppColors
 import com.inisialkey.fieldmonitoring.report.domain.Report
+
+private val SummaryTiles = listOf(
+    ReportFilter.DRAFT to R.drawable.ic_edit_note,
+    ReportFilter.UNSENT to R.drawable.ic_cloud_upload,
+    ReportFilter.WAITING to R.drawable.ic_hourglass_empty,
+    ReportFilter.EVALUATED to R.drawable.ic_task_alt,
+)
 
 @Composable
 fun ReportListScreen(
@@ -62,45 +78,72 @@ fun ReportListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val pullState = rememberPullToRefreshState()
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     UserMessageEffect(viewModel.messages, snackbarHostState)
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.reports_title)) },
-                actions = { AccountMenu(onSignedOut = onSignedOut) },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = onCreateReport) {
+            ExtendedFloatingActionButton(
+                onClick = onCreateReport,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.navigationBarsPadding(),
+            ) {
                 Icon(painterResource(R.drawable.ic_add), contentDescription = null)
                 Text(stringResource(R.string.create_report), modifier = Modifier.padding(start = 12.dp))
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState, modifier = Modifier.navigationBarsPadding()) },
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            state.banner?.let { ConnectivityBanner(it, onRetry = viewModel::retryFailed, onSignIn = onSignIn) }
-            if (state.hasReports) FilterRow(state.filter, viewModel::onFilterChange)
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
+        ) {
             PullToRefreshBox(
                 isRefreshing = state.refreshing,
                 onRefresh = viewModel::refresh,
+                state = pullState,
+                indicator = {
+                    PullToRefreshDefaults.Indicator(
+                        state = pullState,
+                        isRefreshing = state.refreshing,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .statusBarsPadding(),
+                    )
+                },
                 modifier = Modifier.fillMaxSize(),
             ) {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .contentWidth(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 112.dp + bottomInset),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    item(key = "hero") {
+                        SummaryHero(state, onFilter = viewModel::onFilterChange, onSignedOut = onSignedOut)
+                    }
+                    state.banner?.let { banner ->
+                        item(key = "banner") {
+                            ConnectivityBanner(
+                                banner,
+                                onRetry = viewModel::retryFailed,
+                                onSignIn = onSignIn,
+                                modifier = Modifier
+                                    .contentWidth()
+                                    .padding(horizontal = 16.dp),
+                            )
+                        }
+                    }
+                    if (!state.loading && state.hasReports) {
+                        item(key = "title") { ListTitle(state, onShowAll = { viewModel.onFilterChange(ReportFilter.ALL) }) }
+                    }
                     when {
                         state.loading -> Unit
-                        !state.hasReports -> item {
+                        !state.hasReports -> item(key = "empty") {
                             EmptyState(
                                 icon = R.drawable.ic_edit_note,
                                 title = stringResource(R.string.reports_empty_title),
@@ -110,18 +153,59 @@ fun ReportListScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }
-                        state.reports.isEmpty() -> item {
-                            Text(
-                                stringResource(R.string.reports_filter_empty),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(vertical = 24.dp),
+                        state.reports.isEmpty() -> item(key = "filtered-empty") {
+                            EmptyState(
+                                icon = R.drawable.ic_task_alt,
+                                title = stringResource(state.filter.label),
+                                message = stringResource(R.string.reports_filter_empty),
+                                modifier = Modifier.fillMaxWidth(),
                             )
                         }
                         else -> items(state.reports, key = { it.id }) { report ->
-                            ReportCard(report, onClick = { onOpenReport(report) }, modifier = Modifier.animateItem())
+                            ReportCard(
+                                report,
+                                onClick = { onOpenReport(report) },
+                                modifier = Modifier
+                                    .animateItem()
+                                    .contentWidth()
+                                    .padding(horizontal = 16.dp),
+                            )
                         }
                     }
+                }
+            }
+            StatusBarScrim(Modifier.align(Alignment.TopCenter))
+        }
+    }
+}
+
+@Composable
+private fun SummaryHero(state: ReportListUiState, onFilter: (ReportFilter) -> Unit, onSignedOut: () -> Unit) {
+    HeroHeader {
+        AccountHeader(onSignedOut = onSignedOut)
+        ConnectivityPill(state.online, modifier = Modifier.padding(top = 14.dp))
+        Text(
+            stringResource(R.string.reports_summary),
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.White,
+            modifier = Modifier
+                .padding(top = 24.dp, bottom = 12.dp)
+                .semantics { heading() },
+        )
+        SummaryTiles.chunked(2).forEachIndexed { index, row ->
+            Row(
+                modifier = Modifier.padding(top = if (index == 0) 0.dp else 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                row.forEach { (filter, icon) ->
+                    StatTile(
+                        count = state.counts[filter] ?: 0,
+                        label = stringResource(filter.label),
+                        icon = icon,
+                        selected = state.filter == filter,
+                        onClick = { onFilter(if (state.filter == filter) ReportFilter.ALL else filter) },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         }
@@ -129,26 +213,28 @@ fun ReportListScreen(
 }
 
 @Composable
-private fun FilterRow(selected: ReportFilter, onSelect: (ReportFilter) -> Unit) {
+private fun ListTitle(state: ReportListUiState, onShowAll: () -> Unit) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .selectableGroup()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .contentWidth()
+            .padding(start = 20.dp, end = 8.dp, top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        ReportFilter.entries.forEach { filter ->
-            FilterChip(
-                selected = filter == selected,
-                onClick = { onSelect(filter) },
-                label = { Text(stringResource(filter.label)) },
-                leadingIcon = if (filter == selected) {
-                    { Icon(painterResource(R.drawable.ic_check), contentDescription = null) }
-                } else {
-                    null
-                },
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                stringResource(if (state.filter == ReportFilter.ALL) R.string.reports_title else state.filter.label),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.semantics { heading() },
             )
+            Text(
+                stringResource(R.string.report_count, state.reports.size),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (state.filter != ReportFilter.ALL) {
+            TextButton(onClick = onShowAll) { Text(stringResource(R.string.show_all)) }
         }
     }
 }
@@ -161,9 +247,9 @@ private data class BannerStyle(
 )
 
 @Composable
-private fun ConnectivityBanner(banner: Banner, onRetry: () -> Unit, onSignIn: () -> Unit) {
+private fun ConnectivityBanner(banner: Banner, onRetry: () -> Unit, onSignIn: () -> Unit, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
-    val status = LocalStatusColors.current
+    val app = LocalAppColors.current
     val style = when (banner) {
         Banner.SessionExpired -> BannerStyle(
             colors.errorContainer, colors.onErrorContainer, R.drawable.ic_lock, stringResource(R.string.banner_session_expired),
@@ -175,10 +261,7 @@ private fun ConnectivityBanner(banner: Banner, onRetry: () -> Unit, onSignIn: ()
             colors.errorContainer, colors.onErrorContainer, R.drawable.ic_block, stringResource(R.string.banner_attention, banner.count),
         )
         is Banner.OfflinePending -> BannerStyle(
-            status.warningContainer,
-            status.onWarningContainer,
-            R.drawable.ic_cloud_off,
-            stringResource(R.string.banner_offline_pending, banner.count),
+            app.warningContainer, app.onWarningContainer, R.drawable.ic_cloud_off, stringResource(R.string.banner_offline_pending, banner.count),
         )
         Banner.Offline -> BannerStyle(
             colors.surfaceContainerHigh, colors.onSurface, R.drawable.ic_cloud_off, stringResource(R.string.banner_offline),
@@ -190,24 +273,19 @@ private fun ConnectivityBanner(banner: Banner, onRetry: () -> Unit, onSignIn: ()
     Surface(
         color = style.container,
         contentColor = style.content,
-        modifier = Modifier
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite },
     ) {
         Column {
             Row(
-                modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                modifier = Modifier.padding(start = 14.dp, end = 6.dp, top = 10.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Icon(painterResource(style.icon), contentDescription = null)
-                Text(
-                    style.text,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(vertical = 12.dp),
-                )
+                IconBadge(style.icon, container = style.content.copy(alpha = 0.12f), content = style.content)
+                Text(style.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 val action = when (banner) {
                     is Banner.Failed -> R.string.action_retry to onRetry
                     Banner.SessionExpired -> R.string.action_sign_in to onSignIn
@@ -215,11 +293,20 @@ private fun ConnectivityBanner(banner: Banner, onRetry: () -> Unit, onSignIn: ()
                 }
                 action?.let { (label, onClick) ->
                     TextButton(onClick = onClick, colors = ButtonDefaults.textButtonColors(contentColor = style.content)) {
-                        Text(stringResource(label))
+                        Text(stringResource(label), fontWeight = FontWeight.Bold)
                     }
                 }
             }
-            if (banner is Banner.Sending) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            if (banner is Banner.Sending) {
+                LinearProgressIndicator(
+                    strokeCap = StrokeCap.Round,
+                    color = style.content,
+                    trackColor = style.content.copy(alpha = 0.2f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
+                )
+            }
         }
     }
 }

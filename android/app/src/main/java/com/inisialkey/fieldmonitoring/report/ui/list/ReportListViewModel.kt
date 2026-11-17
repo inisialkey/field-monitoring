@@ -72,6 +72,8 @@ data class ReportListUiState(
     val reports: List<Report> = emptyList(),
     val hasReports: Boolean = false,
     val filter: ReportFilter = ReportFilter.ALL,
+    val counts: Map<ReportFilter, Int> = emptyMap(),
+    val online: Boolean = true,
     val banner: Banner? = null,
     val refreshing: Boolean = false,
 )
@@ -103,6 +105,8 @@ class ReportListViewModel @Inject constructor(
             reports = all.filter(filter::matches),
             hasReports = all.isNotEmpty(),
             filter = filter,
+            counts = ReportFilter.entries.associateWith { candidate -> all.count(candidate::matches) },
+            online = online,
             banner = bannerFor(all, online, expired),
             refreshing = refreshing,
         )

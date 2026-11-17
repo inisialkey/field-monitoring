@@ -1,6 +1,5 @@
 package com.inisialkey.fieldmonitoring.core.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -90,14 +93,23 @@ private fun PhotoTile(photo: Photo, number: Int, onRemove: ((Photo) -> Unit)?, o
 
 @Composable
 private fun AddPhotoTile(processing: Boolean, onAdd: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val dash = colors.primary.copy(alpha = 0.6f)
     Surface(
         onClick = onAdd,
         enabled = !processing,
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        contentColor = MaterialTheme.colorScheme.primary,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        modifier = Modifier.fillMaxSize(),
+        color = colors.primaryContainer.copy(alpha = 0.45f),
+        contentColor = colors.primary,
+        modifier = Modifier
+            .fillMaxSize()
+            .drawBehind {
+                drawRoundRect(
+                    color = dash,
+                    cornerRadius = CornerRadius(16.dp.toPx()),
+                    style = Stroke(width = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 10f))),
+                )
+            },
     ) {
         Column(
             modifier = Modifier.padding(8.dp),

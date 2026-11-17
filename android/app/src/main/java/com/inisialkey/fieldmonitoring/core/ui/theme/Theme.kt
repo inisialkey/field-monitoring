@@ -16,7 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Immutable
-data class StatusColors(
+data class AppColors(
+    val isDark: Boolean,
+    val heroStart: Color,
+    val heroEnd: Color,
+    val accent: Color,
     val success: Color,
     val successContainer: Color,
     val onSuccessContainer: Color,
@@ -25,7 +29,11 @@ data class StatusColors(
     val onWarningContainer: Color,
 )
 
-private val LightStatusColors = StatusColors(
+private val LightAppColors = AppColors(
+    isDark = false,
+    heroStart = Color(0xFF016F33),
+    heroEnd = Color(0xFF034721),
+    accent = Color(0xFFB0C836),
     success = Color(0xFF016F33),
     successContainer = Color(0xFFD9F1E4),
     onSuccessContainer = Color(0xFF034721),
@@ -34,7 +42,11 @@ private val LightStatusColors = StatusColors(
     onWarningContainer = Color(0xFF78350F),
 )
 
-private val DarkStatusColors = StatusColors(
+private val DarkAppColors = AppColors(
+    isDark = true,
+    heroStart = Color(0xFF0D4D2A),
+    heroEnd = Color(0xFF06301A),
+    accent = Color(0xFFB0C836),
     success = Color(0xFF6CB745),
     successContainer = Color(0xFF034721),
     onSuccessContainer = Color(0xFFD9F1E4),
@@ -43,7 +55,7 @@ private val DarkStatusColors = StatusColors(
     onWarningContainer = Color(0xFFFEF3C7),
 )
 
-val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
+val LocalAppColors = staticCompositionLocalOf { LightAppColors }
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF016F33),
@@ -59,29 +71,29 @@ private val LightColors = lightColorScheme(
     onTertiary = Color(0xFFFFFFFF),
     tertiaryContainer = Color(0xFFD9EFF2),
     onTertiaryContainer = Color(0xFF004650),
-    background = Color(0xFFF8F9FA),
-    onBackground = Color(0xFF272727),
-    surface = Color(0xFFF8F9FA),
-    onSurface = Color(0xFF272727),
-    surfaceVariant = Color(0xFFE2E2E3),
-    onSurfaceVariant = Color(0xFF5E5E60),
+    background = Color(0xFFF3F6F2),
+    onBackground = Color(0xFF1E231F),
+    surface = Color(0xFFF3F6F2),
+    onSurface = Color(0xFF1E231F),
+    surfaceVariant = Color(0xFFDCE2DA),
+    onSurfaceVariant = Color(0xFF545B55),
     surfaceTint = Color(0xFF016F33),
     inverseSurface = Color(0xFF2F3031),
     inverseOnSurface = Color(0xFFF1F1F1),
-    error = Color(0xFFDC2626),
+    error = Color(0xFFC81E1E),
     onError = Color(0xFFFFFFFF),
     errorContainer = Color(0xFFFEE2E2),
     onErrorContainer = Color(0xFF7F1D1D),
-    outline = Color(0xFF767676),
-    outlineVariant = Color(0xFFE2E2E2),
+    outline = Color(0xFF727973),
+    outlineVariant = Color(0xFFD5DBD3),
     scrim = Color(0xFF000000),
-    surfaceBright = Color(0xFFF8F9FA),
-    surfaceDim = Color(0xFFDEDFE0),
+    surfaceBright = Color(0xFFF3F6F2),
+    surfaceDim = Color(0xFFD8DDD6),
     surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFF2F3F4),
-    surfaceContainer = Color(0xFFEDEEEF),
-    surfaceContainerHigh = Color(0xFFEAEAEA),
-    surfaceContainerHighest = Color(0xFFE2E2E3),
+    surfaceContainerLow = Color(0xFFEEF2EC),
+    surfaceContainer = Color(0xFFE9EEE7),
+    surfaceContainerHigh = Color(0xFFE3E8E1),
+    surfaceContainerHighest = Color(0xFFDCE2DA),
 )
 
 private val DarkColors = darkColorScheme(
@@ -98,12 +110,12 @@ private val DarkColors = darkColorScheme(
     onTertiary = Color(0xFF00363D),
     tertiaryContainer = Color(0xFF004650),
     onTertiaryContainer = Color(0xFFD9EFF2),
-    background = Color(0xFF111111),
-    onBackground = Color(0xFFECECEC),
-    surface = Color(0xFF111111),
-    onSurface = Color(0xFFECECEC),
-    surfaceVariant = Color(0xFF2A2A2A),
-    onSurfaceVariant = Color(0xFFB4B4B4),
+    background = Color(0xFF0E1310),
+    onBackground = Color(0xFFE6ECE7),
+    surface = Color(0xFF0E1310),
+    onSurface = Color(0xFFE6ECE7),
+    surfaceVariant = Color(0xFF2D3630),
+    onSurfaceVariant = Color(0xFFB3BCB5),
     surfaceTint = Color(0xFF6CB745),
     inverseSurface = Color(0xFFE6E6E6),
     inverseOnSurface = Color(0xFF2F3031),
@@ -111,31 +123,31 @@ private val DarkColors = darkColorScheme(
     onError = Color(0xFF450A0A),
     errorContainer = Color(0xFF7F1D1D),
     onErrorContainer = Color(0xFFFEE2E2),
-    outline = Color(0xFF8A8A8A),
-    outlineVariant = Color(0xFF333333),
+    outline = Color(0xFF87918A),
+    outlineVariant = Color(0xFF2F3832),
     scrim = Color(0xFF000000),
-    surfaceBright = Color(0xFF2E2E2E),
-    surfaceDim = Color(0xFF111111),
-    surfaceContainerLowest = Color(0xFF1C1C1C),
-    surfaceContainerLow = Color(0xFF1C1C1C),
-    surfaceContainer = Color(0xFF222222),
-    surfaceContainerHigh = Color(0xFF2A2A2A),
-    surfaceContainerHighest = Color(0xFF353535),
+    surfaceBright = Color(0xFF2A322C),
+    surfaceDim = Color(0xFF0E1310),
+    surfaceContainerLowest = Color(0xFF171D19),
+    surfaceContainerLow = Color(0xFF171D19),
+    surfaceContainer = Color(0xFF1C231E),
+    surfaceContainerHigh = Color(0xFF232B25),
+    surfaceContainerHighest = Color(0xFF2D3630),
 )
 
 private val AppTypography = Typography().run { copy(labelSmall = labelSmall.copy(fontSize = 12.sp, lineHeight = 16.sp)) }
 
 private val AppShapes = Shapes(
-    extraSmall = RoundedCornerShape(4.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(12.dp),
-    large = RoundedCornerShape(16.dp),
+    extraSmall = RoundedCornerShape(12.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp),
     extraLarge = RoundedCornerShape(28.dp),
 )
 
 @Composable
 fun FieldMonitoringTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
+    CompositionLocalProvider(LocalAppColors provides if (darkTheme) DarkAppColors else LightAppColors) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColors else LightColors,
             typography = AppTypography,

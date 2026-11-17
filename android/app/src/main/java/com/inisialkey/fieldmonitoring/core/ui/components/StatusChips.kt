@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,7 +20,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.inisialkey.fieldmonitoring.R
-import com.inisialkey.fieldmonitoring.core.ui.theme.LocalStatusColors
+import com.inisialkey.fieldmonitoring.core.ui.theme.LocalAppColors
 import com.inisialkey.fieldmonitoring.report.domain.Evaluation
 import com.inisialkey.fieldmonitoring.report.domain.EvaluationResult
 import com.inisialkey.fieldmonitoring.report.domain.Report
@@ -37,15 +38,15 @@ private fun StatusPill(
     Surface(
         color = container,
         contentColor = content,
-        shape = MaterialTheme.shapes.small,
+        shape = CircleShape,
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(14.dp))
             Text(label, style = MaterialTheme.typography.labelMedium)
         }
     }
@@ -54,7 +55,7 @@ private fun StatusPill(
 @Composable
 fun SyncStatusChip(report: Report, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
-    val status = LocalStatusColors.current
+    val status = LocalAppColors.current
     when (report.syncState) {
         SyncState.DRAFT -> StatusPill(
             stringResource(R.string.sync_draft), R.drawable.ic_edit_note, colors.surfaceContainerHigh, colors.onSurfaceVariant, modifier,
@@ -84,7 +85,7 @@ fun SyncStatusChip(report: Report, modifier: Modifier = Modifier) {
 @Composable
 fun EvaluationBadge(evaluation: Evaluation?, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
-    val status = LocalStatusColors.current
+    val status = LocalAppColors.current
     when (evaluation?.result) {
         null -> StatusPill(
             stringResource(R.string.evaluation_waiting), R.drawable.ic_hourglass_empty, colors.surfaceContainerHigh, colors.onSurfaceVariant, modifier,

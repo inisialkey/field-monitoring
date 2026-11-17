@@ -1,5 +1,6 @@
 package com.inisialkey.fieldmonitoring.core.ui
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.inisialkey.fieldmonitoring.R
 import com.inisialkey.fieldmonitoring.report.domain.Category
@@ -46,6 +47,17 @@ fun Category.labelRes(): Int = when (this) {
     Category.TRAFFIC_SIGN -> R.string.category_traffic_sign
     Category.PUBLIC_FACILITY -> R.string.category_public_facility
     Category.OTHER -> R.string.category_other
+}
+
+@DrawableRes
+fun Category.iconRes(): Int = when (this) {
+    Category.ROAD -> R.drawable.ic_road
+    Category.BRIDGE -> R.drawable.ic_foundation
+    Category.DRAINAGE -> R.drawable.ic_water_drop
+    Category.STREET_LIGHT -> R.drawable.ic_light
+    Category.TRAFFIC_SIGN -> R.drawable.ic_signpost
+    Category.PUBLIC_FACILITY -> R.drawable.ic_apartment
+    Category.OTHER -> R.drawable.ic_category
 }
 
 private fun offset(minutes: Int): ZoneOffset = ZoneOffset.ofTotalSeconds(minutes * 60)

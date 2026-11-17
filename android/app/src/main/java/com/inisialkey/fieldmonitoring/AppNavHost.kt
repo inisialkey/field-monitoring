@@ -1,12 +1,20 @@
 package com.inisialkey.fieldmonitoring
 
+import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.inisialkey.fieldmonitoring.auth.domain.Role
 import com.inisialkey.fieldmonitoring.auth.domain.Session
@@ -41,6 +49,7 @@ data class Evaluate(val reportId: String)
 @Composable
 fun AppNavHost(initialSession: Session?, navController: NavHostController = rememberNavController()) {
     val start: Any = remember { initialSession?.role?.let(::homeOf) ?: Login }
+    StatusBarAppearance(navController)
     NavHost(navController = navController, startDestination = start) {
         composable<Login> {
             LoginScreen(
@@ -86,6 +95,19 @@ fun AppNavHost(initialSession: Session?, navController: NavHostController = reme
                 onSignIn = { navController.navigateOnce(Login) },
             )
         }
+    }
+}
+
+@Composable
+private fun StatusBarAppearance(navController: NavHostController) {
+    val entry by navController.currentBackStackEntryAsState()
+    val destination = entry?.destination
+    val onHero = destination == null || destination.hasRoute<Login>() || destination.hasRoute<Reports>() || destination.hasRoute<Queue>()
+    val darkTheme = isSystemInDarkTheme()
+    val window = LocalActivity.current?.window
+    val view = LocalView.current
+    LaunchedEffect(onHero, darkTheme, window) {
+        if (window != null) WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !onHero && !darkTheme
     }
 }
 

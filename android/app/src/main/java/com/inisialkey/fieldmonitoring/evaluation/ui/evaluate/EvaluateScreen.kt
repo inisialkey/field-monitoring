@@ -3,21 +3,24 @@ package com.inisialkey.fieldmonitoring.evaluation.ui.evaluate
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.background
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -27,16 +30,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldLabelPosition
@@ -50,29 +50,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.inisialkey.fieldmonitoring.R
 import com.inisialkey.fieldmonitoring.core.ui.components.BackButton
 import com.inisialkey.fieldmonitoring.core.ui.components.EmptyState
 import com.inisialkey.fieldmonitoring.core.ui.components.FieldError
+import com.inisialkey.fieldmonitoring.core.ui.components.FullScreenPhoto
+import com.inisialkey.fieldmonitoring.core.ui.components.SectionCard
 import com.inisialkey.fieldmonitoring.core.ui.components.UserMessageEffect
 import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
-import com.inisialkey.fieldmonitoring.core.ui.components.imageModel
-import com.inisialkey.fieldmonitoring.core.ui.theme.LocalStatusColors
+import com.inisialkey.fieldmonitoring.core.ui.theme.LocalAppColors
 import com.inisialkey.fieldmonitoring.evaluation.domain.EvaluationField
 import com.inisialkey.fieldmonitoring.evaluation.domain.EvaluationRules
 import com.inisialkey.fieldmonitoring.evaluation.ui.queue.LoadError
@@ -120,18 +120,30 @@ fun EvaluateScreen(
         },
         bottomBar = {
             if (canEvaluate) {
-                Button(
-                    onClick = viewModel::onSubmitClick,
-                    enabled = !state.submitting,
-                    modifier = Modifier
-                        .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-                        .contentWidth()
-                        .padding(16.dp),
-                ) {
-                    if (state.submitting) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    } else {
-                        Text(stringResource(R.string.submit_evaluation))
+                Surface(color = MaterialTheme.colorScheme.surfaceContainerLowest, shadowElevation = 8.dp) {
+                    Button(
+                        onClick = viewModel::onSubmitClick,
+                        enabled = !state.submitting,
+                        modifier = Modifier
+                            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                            .contentWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .height(56.dp),
+                    ) {
+                        if (state.submitting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
+                        } else {
+                            Icon(painterResource(R.drawable.ic_send), contentDescription = null, modifier = Modifier.size(20.dp))
+                            Text(
+                                stringResource(R.string.submit_evaluation),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(start = 10.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -172,11 +184,15 @@ fun EvaluateScreen(
                         .verticalScroll(rememberScrollState())
                         .contentWidth()
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     ReportDetailSections(report, forOwner = false, onOpenPhoto = { openPhoto = it })
                     report.location?.let { OpenInMapsButton(it) }
-                    if (canEvaluate) EvaluationForm(state, viewModel)
+                    if (canEvaluate) {
+                        SectionCard(title = stringResource(R.string.field_result), icon = R.drawable.ic_task_alt) {
+                            EvaluationForm(state, viewModel)
+                        }
+                    }
                 }
             }
         }
@@ -208,31 +224,35 @@ fun EvaluateScreen(
 
 @Composable
 private fun EvaluationForm(state: EvaluateUiState, viewModel: EvaluateViewModel) {
-    val status = LocalStatusColors.current
+    val app = LocalAppColors.current
     val colors = MaterialTheme.colorScheme
-    val resultError = state.errors[EvaluationField.RESULT]
     val notesError = state.errors[EvaluationField.NOTES]
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.field_result), style = MaterialTheme.typography.titleSmall)
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            listOf(
-                Triple(EvaluationResult.VALID, R.string.evaluation_valid, status.successContainer to status.onSuccessContainer),
-                Triple(EvaluationResult.INVALID, R.string.evaluation_invalid, colors.errorContainer to colors.onErrorContainer),
-            ).forEachIndexed { index, (result, label, selectedColors) ->
-                SegmentedButton(
-                    selected = state.result == result,
-                    onClick = { viewModel.onResultSelected(result) },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = selectedColors.first,
-                        activeContentColor = selectedColors.second,
-                    ),
-                ) { Text(stringResource(label)) }
-            }
-        }
-        if (resultError != null) FieldError(stringResource(R.string.error_result_required))
+    Row(modifier = Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        DecisionCard(
+            selected = state.result == EvaluationResult.VALID,
+            title = stringResource(R.string.evaluation_valid),
+            hint = stringResource(R.string.decision_valid_hint),
+            icon = R.drawable.ic_check_circle,
+            container = app.successContainer,
+            content = app.onSuccessContainer,
+            accent = app.success,
+            onClick = { viewModel.onResultSelected(EvaluationResult.VALID) },
+            modifier = Modifier.weight(1f),
+        )
+        DecisionCard(
+            selected = state.result == EvaluationResult.INVALID,
+            title = stringResource(R.string.evaluation_invalid),
+            hint = stringResource(R.string.decision_invalid_hint),
+            icon = R.drawable.ic_cancel,
+            container = colors.errorContainer,
+            content = colors.onErrorContainer,
+            accent = colors.error,
+            onClick = { viewModel.onResultSelected(EvaluationResult.INVALID) },
+            modifier = Modifier.weight(1f),
+        )
     }
+    if (state.errors[EvaluationField.RESULT] != null) FieldError(stringResource(R.string.error_result_required))
 
     val notesErrorText = when (notesError) {
         ReportFieldError.REQUIRED -> stringResource(R.string.error_required)
@@ -262,6 +282,35 @@ private fun EvaluationForm(state: EvaluateUiState, viewModel: EvaluateViewModel)
 }
 
 @Composable
+private fun DecisionCard(
+    selected: Boolean,
+    title: String,
+    hint: String,
+    @DrawableRes icon: Int,
+    container: Color,
+    content: Color,
+    accent: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        selected = selected,
+        onClick = onClick,
+        shape = MaterialTheme.shapes.large,
+        color = if (selected) container else MaterialTheme.colorScheme.surfaceContainerLowest,
+        contentColor = if (selected) content else MaterialTheme.colorScheme.onSurface,
+        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) accent else MaterialTheme.colorScheme.outline),
+        modifier = modifier.semantics { role = Role.RadioButton },
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(painterResource(icon), contentDescription = null, tint = accent, modifier = Modifier.size(28.dp))
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(hint, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
 private fun OpenInMapsButton(location: GeoPoint) {
     val context = LocalContext.current
     OutlinedButton(onClick = { context.openMaps(location) }) {
@@ -276,31 +325,5 @@ private fun Context.openMaps(location: GeoPoint) {
         startActivity(Intent(Intent.ACTION_VIEW, uri))
     } catch (e: ActivityNotFoundException) {
         return
-    }
-}
-
-@Composable
-private fun FullScreenPhoto(photo: Photo, onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black),
-        ) {
-            AsyncImage(
-                model = photo.imageModel(),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
-            )
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier
-                    .safeDrawingPadding()
-                    .align(Alignment.TopEnd),
-            ) {
-                Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.action_close), tint = Color.White)
-            }
-        }
     }
 }
