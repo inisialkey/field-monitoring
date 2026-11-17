@@ -1,9 +1,11 @@
 package com.inisialkey.fieldmonitoring.auth.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -67,12 +69,7 @@ fun LoginScreen(onSignedIn: (Role) -> Unit, onBack: () -> Unit, viewModel: Login
                 .padding(horizontal = 16.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Icon(
-                painterResource(R.drawable.ic_location_on),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp),
-            )
+            Image(painterResource(R.drawable.logo), contentDescription = null, modifier = Modifier.height(56.dp))
             Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
             Text(
                 stringResource(if (reauth) R.string.login_reauth_subtitle else R.string.login_subtitle),
