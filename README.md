@@ -1,5 +1,7 @@
 # Field Monitoring & Evaluation
 
+[![CI](https://github.com/inisialkey/field-monitoring/actions/workflows/ci.yml/badge.svg)](https://github.com/inisialkey/field-monitoring/actions/workflows/ci.yml)
+
 An offline-first Android app with a backend for monitoring and evaluating environmental programs funded by BPDLH (Badan Pengelola Dana Lingkungan Hidup, the Indonesian Environment Fund), such as mangrove planting, forest rehabilitation, and peatland restoration. Field Officers visit program sites and submit reports with photos and a location, with or without a connection, since many sites have no signal. Evaluators review submitted reports and mark them valid or invalid. The app's interface is in Indonesian.
 
 - **Android:** Kotlin, Jetpack Compose, Material 3, Hilt, Room, WorkManager, Retrofit, OkHttp, Coil
@@ -86,6 +88,8 @@ cd android
 
 - **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, and input validation.
 - **Android:** submit validation rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
+
+GitHub Actions runs both suites and builds a debug APK on every push and pull request to `main`. Each run keeps the APK as a downloadable artifact.
 
 ## Architecture
 
