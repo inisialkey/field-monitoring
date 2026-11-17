@@ -104,12 +104,7 @@ fun ReportListScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 text = { Text(stringResource(R.string.create_report)) },
-                icon = {
-                    Icon(
-                        painterResource(R.drawable.ic_add),
-                        contentDescription = if (fabExpanded) null else stringResource(R.string.create_report),
-                    )
-                },
+                icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.create_report)) },
                 onClick = onCreateReport,
                 expanded = fabExpanded,
                 containerColor = MaterialTheme.colorScheme.primary,
