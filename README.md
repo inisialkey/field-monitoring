@@ -53,6 +53,20 @@ The API runs at `http://localhost:3000/api/v1`. On start, the container applies 
 
 The password comes from `SEED_PASSWORD` in `.env`.
 
+### Install a release APK
+
+Each [release](https://github.com/inisialkey/field-monitoring/releases) has two APKs of the same app. They differ only in the backend address:
+
+- `field-monitoring-<version>-emulator.apk` talks to `http://10.0.2.2:3000/`, the host machine as seen from the Android Emulator.
+- `field-monitoring-<version>-usb.apk` talks to `http://localhost:3000/`, for a physical device connected over USB with USB debugging on. Forward the port before opening the app:
+
+```bash
+adb install field-monitoring-<version>-usb.apk
+adb reverse tcp:3000 tcp:3000
+```
+
+Release APKs are signed with a different key than local builds, so uninstall a locally built app first.
+
 ### Android
 
 The app runs on Android 8.0 (API 26) and later. Open `android/` in Android Studio and run the `app` configuration, or start an emulator and run:
@@ -68,7 +82,7 @@ The app talks to `http://10.0.2.2:3000/`, which is the host machine as seen from
 ./gradlew installDebug -PapiBaseUrl=http://192.168.1.10:3000/
 ```
 
-Cleartext HTTP is allowed only for the host in `apiBaseUrl`. `./gradlew assembleRelease` builds a minified APK signed with the debug key, for demos.
+Cleartext HTTP is allowed only for the host in `apiBaseUrl`. `./gradlew assembleRelease` builds a minified APK. It is signed with the debug key unless `RELEASE_KEYSTORE`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, and `RELEASE_KEY_PASSWORD` point to a release keystore.
 
 ### Tests
 
@@ -89,7 +103,7 @@ cd android
 - **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, and input validation.
 - **Android:** submit validation rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
 
-GitHub Actions runs both suites and builds a debug APK on every push and pull request to `main`. Each run keeps the APK as a downloadable artifact.
+GitHub Actions runs both suites and builds a debug APK on every push and pull request to `main`. Each run keeps the APK as a downloadable artifact. Pushing a `v*` tag builds both release APKs, signs them with the release key stored in the repository secrets, and publishes them as a GitHub release.
 
 ## Architecture
 
