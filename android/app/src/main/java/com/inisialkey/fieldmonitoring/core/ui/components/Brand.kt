@@ -3,6 +3,7 @@ package com.inisialkey.fieldmonitoring.core.ui.components
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -89,6 +91,37 @@ fun StatusBarScrim(modifier: Modifier = Modifier) {
             .windowInsetsTopHeight(WindowInsets.statusBars)
             .background(LocalAppColors.current.heroStart),
     )
+}
+
+@Composable
+fun CollapsedListBar(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        color = LocalAppColors.current.heroStart,
+        contentColor = Color.White,
+        shadowElevation = 4.dp,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .statusBarsPadding()
+                .clickable(onClickLabel = stringResource(R.string.scroll_to_top), role = Role.Button, onClick = onClick)
+                .contentWidth()
+                .heightIn(min = 56.dp)
+                .padding(start = 20.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(painterResource(R.drawable.ic_arrow_upward), contentDescription = null, modifier = Modifier.size(24.dp))
+        }
+    }
 }
 
 @Composable
@@ -276,23 +309,21 @@ fun InfoRow(@DrawableRes icon: Int, label: String, value: String, modifier: Modi
 }
 
 @Composable
-fun IconText(@DrawableRes icon: Int, text: String, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
+fun IconText(@DrawableRes icon: Int, text: String, modifier: Modifier = Modifier, maxLines: Int = 1) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Icon(
             painterResource(icon),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(16.dp),
         )
         Text(
             text,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+            maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
         )
     }

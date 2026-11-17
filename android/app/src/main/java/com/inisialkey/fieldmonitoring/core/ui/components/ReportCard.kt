@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -23,11 +24,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.inisialkey.fieldmonitoring.BuildConfig
@@ -69,7 +67,7 @@ fun locationSummary(report: Report): String {
     val note = report.locationNote.trim()
     return when {
         location == null -> listOf(stringResource(R.string.no_gps), note).filter { it.isNotEmpty() }.joinToString(" · ")
-        location.placeName != null -> location.placeName
+        location.placeName != null -> location.placeName.split(", ").take(2).joinToString(", ")
         note.isNotEmpty() -> note
         else -> location.coordinates()
     }
@@ -102,21 +100,16 @@ fun ReportCard(report: Report, onClick: () -> Unit, modifier: Modifier = Modifie
                 }
             }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = buildAnnotatedString {
-                        if (category != null) {
-                            withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.SemiBold)) {
-                                append(stringResource(category.labelRes()))
-                            }
-                            append("  ·  ")
-                        }
-                        append(formatDateTime(report.incidentAt, report.incidentOffsetMinutes))
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = colors.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (category != null) {
+                    Text(
+                        stringResource(category.labelRes()),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = colors.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Text(
                     text = report.title.ifBlank { stringResource(R.string.report_untitled) },
                     style = MaterialTheme.typography.titleMedium,
@@ -133,17 +126,23 @@ fun ReportCard(report: Report, onClick: () -> Unit, modifier: Modifier = Modifie
                         Text(report.reporterName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                IconText(R.drawable.ic_location_on, locationSummary(report))
-                FlowRow(
-                    modifier = Modifier.padding(top = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (!showReporter) SyncStatusChip(report)
-                    if (!showReporter && report.syncState == SyncState.SYNCED) EvaluationBadge(report.evaluation)
-                    IconText(R.drawable.ic_image, stringResource(R.string.photo_count, report.photos.size))
+                IconText(R.drawable.ic_location_on, locationSummary(report), maxLines = 2)
+            }
+        }
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp), color = colors.outlineVariant)
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (!showReporter) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SyncStatusChip(report)
+                    if (report.syncState == SyncState.SYNCED) EvaluationBadge(report.evaluation)
                 }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IconText(R.drawable.ic_event, formatDateTime(report.incidentAt, report.incidentOffsetMinutes), Modifier.weight(1f))
+                IconText(R.drawable.ic_image, stringResource(R.string.photo_count, report.photos.size))
             }
         }
         if (report.syncState == SyncState.SYNCING && report.photos.isNotEmpty()) {

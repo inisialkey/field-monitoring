@@ -192,6 +192,7 @@
     <string name="login_title">Masuk ke akun Anda</string>
     <string name="reports_summary">Ringkasan laporan</string>
     <string name="report_count">%1$d laporan</string>
+    <string name="scroll_to_top">Kembali ke atas</string>
     <string name="show_all">Tampilkan semua</string>
     <string name="form_progress_title">Kelengkapan laporan</string>
     <string name="form_progress_ready">Laporan siap dikirim.</string>

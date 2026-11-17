@@ -1,6 +1,11 @@
 package com.inisialkey.fieldmonitoring.report.ui.list
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -31,8 +37,10 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,6 +57,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inisialkey.fieldmonitoring.R
 import com.inisialkey.fieldmonitoring.auth.ui.AccountHeader
+import com.inisialkey.fieldmonitoring.core.ui.components.CollapsedListBar
 import com.inisialkey.fieldmonitoring.core.ui.components.ConnectivityPill
 import com.inisialkey.fieldmonitoring.core.ui.components.EmptyState
 import com.inisialkey.fieldmonitoring.core.ui.components.HeroHeader
@@ -60,6 +69,7 @@ import com.inisialkey.fieldmonitoring.core.ui.components.UserMessageEffect
 import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
 import com.inisialkey.fieldmonitoring.core.ui.theme.LocalAppColors
 import com.inisialkey.fieldmonitoring.report.domain.Report
+import kotlinx.coroutines.launch
 
 private val SummaryTiles = listOf(
     ReportFilter.DRAFT to R.drawable.ic_edit_note,
@@ -79,6 +89,12 @@ fun ReportListScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val pullState = rememberPullToRefreshState()
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val fabExpanded by remember { derivedStateOf { !listState.canScrollBackward || listState.lastScrolledBackward } }
+    val headerHidden by remember {
+        derivedStateOf { listState.layoutInfo.visibleItemsInfo.none { it.key in LIST_HEADER_KEYS } }
+    }
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     UserMessageEffect(viewModel.messages, snackbarHostState)
@@ -87,14 +103,19 @@ fun ReportListScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             ExtendedFloatingActionButton(
+                text = { Text(stringResource(R.string.create_report)) },
+                icon = {
+                    Icon(
+                        painterResource(R.drawable.ic_add),
+                        contentDescription = if (fabExpanded) null else stringResource(R.string.create_report),
+                    )
+                },
                 onClick = onCreateReport,
+                expanded = fabExpanded,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.navigationBarsPadding(),
-            ) {
-                Icon(painterResource(R.drawable.ic_add), contentDescription = null)
-                Text(stringResource(R.string.create_report), modifier = Modifier.padding(start = 12.dp))
-            }
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState, modifier = Modifier.navigationBarsPadding()) },
     ) { padding ->
@@ -119,6 +140,7 @@ fun ReportListScreen(
                 modifier = Modifier.fillMaxSize(),
             ) {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 112.dp + bottomInset),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -175,9 +197,22 @@ fun ReportListScreen(
                 }
             }
             StatusBarScrim(Modifier.align(Alignment.TopCenter))
+            AnimatedVisibility(
+                visible = headerHidden,
+                enter = fadeIn() + slideInVertically { -it },
+                exit = fadeOut() + slideOutVertically { -it },
+                modifier = Modifier.align(Alignment.TopCenter),
+            ) {
+                CollapsedListBar(
+                    title = stringResource(if (state.filter == ReportFilter.ALL) R.string.reports_title else state.filter.label),
+                    onClick = { scope.launch { listState.animateScrollToItem(0) } },
+                )
+            }
         }
     }
 }
+
+private val LIST_HEADER_KEYS = setOf<Any>("hero", "banner", "title")
 
 @Composable
 private fun SummaryHero(state: ReportListUiState, onFilter: (ReportFilter) -> Unit, onSignedOut: () -> Unit) {
