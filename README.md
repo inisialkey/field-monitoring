@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/inisialkey/field-monitoring/actions/workflows/ci.yml/badge.svg)](https://github.com/inisialkey/field-monitoring/actions/workflows/ci.yml)
 
-An offline-first Android app with a backend for monitoring and evaluating environmental programs funded by BPDLH (Badan Pengelola Dana Lingkungan Hidup, the Indonesian Environment Fund), such as mangrove planting, forest rehabilitation, and peatland restoration. Field Officers visit program sites and submit reports with photos and a location, with or without a connection, since many sites have no signal. Evaluators review submitted reports and mark them valid or invalid. The app's interface is in Indonesian.
+An offline-first Android app with a backend for monitoring and evaluating environmental programs funded by BPDLH (Badan Pengelola Dana Lingkungan Hidup, the Indonesian Environment Fund), such as mangrove planting, forest rehabilitation, and peatland restoration. Field Officers visit program sites and submit reports with photos and a location, with or without a connection, since many sites have no signal. Evaluators review the reports and mark them valid or invalid. The app's interface is in Indonesian.
 
 - **Android:** Kotlin, Jetpack Compose, Material 3, Hilt, Room, WorkManager, Retrofit, OkHttp, Coil
 - **Backend:** Next.js Route Handlers, TypeScript, Prisma, PostgreSQL, Zod, JWT
@@ -13,78 +13,89 @@ An offline-first Android app with a backend for monitoring and evaluating enviro
 **Field Officer**
 
 - Signs in once while online. The session stays on the device until logout, so the app keeps working offline.
-- Creates a report starting from photos (camera or gallery), then the GPS location (with its place name, looked up when online) or a written location note, program category, title, description, and observation time. Drafts are saved automatically.
-- Chooses from BPDLH program categories: forest and land rehabilitation, mangrove, peatland restoration, social forestry, renewable energy, waste management, biodiversity, and other.
-- Submitted reports are sent in the background and retried when the connection comes back. Every report shows its status: draft, waiting, sending (with photo progress), sent, failed, or needs attention.
-- Sees the evaluation result on the report after the next sync.
-- Can delete a draft, or a report the server has not accepted (failed or needing attention), after confirming.
+- Creates a report from photos (camera or gallery), the GPS location with its place name or a written location note, one of eight BPDLH program categories, a title, a description, and the observation time. Drafts are saved automatically.
+- Submitted reports are sent in the background and retried when the connection comes back. Each report shows its status, including photo upload progress.
+- Sees the evaluation result after the next sync.
+- Can delete a draft, or a report the server has not accepted, after confirming.
 
 **Evaluator**
 
-- Works from an online queue of submitted reports, oldest first.
-- Opens a report with full-screen photos and a map link, then marks it Valid or Invalid. Notes are required for Invalid. The next report opens after sending.
+- Reviews submitted reports online, oldest first, with full-screen photos and a map link.
+- Marks each report Valid or Invalid. Notes are required for Invalid. The next report opens after sending.
 
-## Getting started
+## Quick start
 
-You need Docker, JDK 17 or later, and the Android SDK with platform 37 (Android Studio can install it). Node.js 22 is only needed to run the backend tests.
+You need Docker and `adb` (from Android SDK Platform-Tools), plus an Android Emulator or a phone running Android 8.0 or later.
 
-### Backend
+**1. Start the backend.** From the repository root:
 
 ```bash
 cp .env.example .env
-```
-
-Set `JWT_SECRET` in `.env` to a long random value, for example the output of `openssl rand -base64 48`. Then start the database and the API:
-
-```bash
 docker compose up -d --build
 ```
 
-The API runs at `http://localhost:3000/api/v1`. On start, the container applies the migrations and creates the demo accounts.
-
-### Demo accounts
-
-| Username | Role | Password |
-|----------|------|----------|
-| `rina` | Field Officer | `demo12345` |
-| `dedi` | Field Officer | `demo12345` |
-| `andi` | Evaluator | `demo12345` |
-| `maya` | Evaluator | `demo12345` |
-
-The password comes from `SEED_PASSWORD` in `.env`.
-
-### Install a release APK
-
-Each [release](https://github.com/inisialkey/field-monitoring/releases) has two APKs of the same app. They differ only in the backend address:
-
-- `field-monitoring-<version>-emulator.apk` talks to `http://10.0.2.2:3000/`, the host machine as seen from the Android Emulator.
-- `field-monitoring-<version>-usb.apk` talks to `http://localhost:3000/`, for a physical device connected over USB with USB debugging on. Forward the port before opening the app:
+The first build takes a few minutes. On start, the container applies the database migrations and creates the demo accounts. The API is ready when this answers `401 Unauthorized`:
 
 ```bash
-adb install field-monitoring-<version>-usb.apk
-adb reverse tcp:3000 tcp:3000
+curl -i http://localhost:3000/api/v1/me/reports
 ```
 
-Release APKs are signed with a different key than local builds, so uninstall a locally built app first.
+**2. Install the app.** Download an APK from the [latest release](https://github.com/inisialkey/field-monitoring/releases/latest). Both files are the same app and differ only in the backend address.
 
-### Android
+- On the Android Emulator, use the `emulator` APK. It connects to `http://10.0.2.2:3000`, the host machine as seen from the emulator.
 
-The app runs on Android 8.0 (API 26) and later. Open `android/` in Android Studio and run the `app` configuration, or start an emulator and run:
+  ```bash
+  adb install field-monitoring-1.0.0-emulator.apk
+  ```
+
+- On a phone connected over USB with USB debugging on, use the `usb` APK. It connects to `http://localhost:3000`, which `adb reverse` forwards to your computer. Run `adb reverse` again whenever you reconnect the cable.
+
+  ```bash
+  adb install field-monitoring-1.0.0-usb.apk
+  adb reverse tcp:3000 tcp:3000
+  ```
+
+**3. Sign in** with a demo account. Every account uses the password `demo12345`, set by `SEED_PASSWORD` in `.env`.
+
+| Username | Role |
+|----------|------|
+| `rina` | Field Officer |
+| `dedi` | Field Officer |
+| `andi` | Evaluator |
+| `maya` | Evaluator |
+
+To stop the backend, run `docker compose down`. Add `-v` to also delete all reports and photos; the demo accounts are created again on the next start.
+
+## Try it
+
+1. Sign in as `rina`, then turn on airplane mode.
+2. Tap **Buat laporan**, add a photo, get the location (or type a location note), pick a category, fill in the title and description, and tap **Kirim laporan**. The report waits with the status **Menunggu dikirim**.
+3. Close the app from Recents and open it again. The report and its photo are still there.
+4. Turn airplane mode off. The report is sent on its own, shows the upload progress, and ends as **Terkirim** and **Menunggu evaluasi**.
+5. Sign out from the avatar menu and sign in as `andi`. Open the report from **Menunggu Evaluasi**, choose **Valid** or **Tidak valid**, and tap **Kirim evaluasi**.
+6. Sign in as `rina` again and pull the list down to refresh. The report now shows the evaluation result.
+7. To see how accounts are kept apart, save a draft as `rina` and sign out. The draft does not appear for `dedi`, and comes back when `rina` signs in again.
+
+On the emulator, use a system image with Google Play, since location and place names rely on Google Play services. The emulator reports the location set under **Extended controls → Location**, and its camera shows a virtual scene.
+
+## Build from source
+
+Building the app needs JDK 17 or later and the Android SDK with platform 37 (Android Studio can install it). Open `android/` in Android Studio and run the `app` configuration, or start an emulator and run:
 
 ```bash
 cd android
 ./gradlew installDebug
 ```
 
-The app talks to `http://10.0.2.2:3000/`, which is the host machine as seen from the emulator. For a physical device on the same network, pass the computer's address:
+This build connects to `http://10.0.2.2:3000/`. For a phone on the same Wi-Fi network as your computer, pass the computer's address. The app allows unencrypted HTTP only for that host.
 
 ```bash
 ./gradlew installDebug -PapiBaseUrl=http://192.168.1.10:3000/
 ```
 
-Cleartext HTTP is allowed only for the host in `apiBaseUrl`. `./gradlew assembleRelease` builds a minified APK. It is signed with the debug key unless `RELEASE_KEYSTORE`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, and `RELEASE_KEY_PASSWORD` point to a release keystore.
+## Tests
 
-### Tests
+The backend tests need Node.js 22 and run against the `field_monitoring_test` database that the `db` container creates:
 
 ```bash
 docker compose up -d db
@@ -93,7 +104,7 @@ npm ci
 npm test
 ```
 
-The backend tests run against the `field_monitoring_test` database that the `db` container creates. Set `TEST_DATABASE_URL` if you changed the database credentials.
+The Android unit tests run on the JVM:
 
 ```bash
 cd android
@@ -101,9 +112,9 @@ cd android
 ```
 
 - **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, and input validation.
-- **Android:** submit validation rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
+- **Android:** report rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
 
-GitHub Actions runs both suites and builds a debug APK on every push and pull request to `main`. Each run keeps the APK as a downloadable artifact. Pushing a `v*` tag builds both release APKs, signs them with the release key stored in the repository secrets, and publishes them as a GitHub release.
+GitHub Actions runs both suites and builds the app on every push and pull request to `main`. Pushing a version tag such as `v1.0.1` publishes signed APKs to Releases.
 
 ## Architecture
 
@@ -131,7 +142,9 @@ backend/   API, Prisma schema and migrations, integration tests
 docker-compose.yml
 ```
 
-The Android code is grouped by feature (`auth`, `report`, `evaluation`, `sync`) with shared code in `core`. Inside each feature, `domain` holds plain Kotlin models and rules, `data` holds Room, Retrofit, and repositories, and `ui` holds Compose screens and ViewModels. On the backend, Route Handlers only parse requests and format responses; the rules live in `src/modules`.
+The design uses domain-driven design where it pays off. Android and the backend share three bounded contexts: Identity (`auth`), Reporting (`report`), and Evaluation (`evaluation`). Synchronization is infrastructure, not a context, and lives in `sync`, with shared code in `core`. Inside each feature, `domain` holds plain Kotlin models and rules with no Android dependencies, `data` holds Room, Retrofit, and repositories, and `ui` holds Compose screens and ViewModels.
+
+The `Report` aggregate guards its own rules: it validates itself, only a valid draft can be submitted, and only reports the server has not accepted can be deleted. The repository submits through the aggregate, so an invalid report never reaches the sync queue. Repositories are concrete classes, and there is no separate use-case layer, because each would have only one implementation. On the backend, Route Handlers only parse requests and format responses; the rules live in `src/modules`.
 
 ### Sending a report
 
@@ -175,19 +188,3 @@ Base path `/api/v1`. Errors have the shape `{ "code": "...", "message": "...", "
 | GET | `/reports/{id}` | Owner or Evaluator | Report detail |
 | POST | `/reports/{id}/evaluation` | Evaluator | Submit the evaluation |
 | GET | `/attachments/{id}/content` | Owner or Evaluator | Download a photo |
-
-## Limitations
-
-- There is no app lock on cold start; the app relies on the device screen lock.
-- Reports accept photos only, not PDF documents.
-- Users come from the seed script. There is no admin screen or CLI for changing roles or revoking accounts.
-- Access tokens are not checked against the database, so revoking an account or changing a role takes effect when the current token expires, within 5 minutes.
-- Reuse of an old refresh token is rejected but not treated as a sign of theft.
-- Accounts sharing a device are separated by the app, not by per-account encryption. Unsent data of an account that can no longer sign in can only be removed by clearing the app's storage.
-- Each sync downloads all of the user's reports instead of only the changes.
-- Each photo uploads in one request; there is no resumable upload.
-- Uploaded files are stored on a local Docker volume.
-
-## Credits
-
-Icons are [Material Symbols](https://fonts.google.com/icons) by Google, under the Apache License 2.0.
