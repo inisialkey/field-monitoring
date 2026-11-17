@@ -30,6 +30,7 @@ data class ReportEntity(
     val longitude: Double?,
     @ColumnInfo(name = "accuracy_m") val accuracyM: Float?,
     @ColumnInfo(name = "location_captured_at") val locationCapturedAt: Long?,
+    @ColumnInfo(name = "location_name") val locationName: String?,
     @ColumnInfo(name = "location_note") val locationNote: String,
     @ColumnInfo(name = "sync_state") val syncState: SyncState,
     @ColumnInfo(name = "attempt_count") val attemptCount: Int,
@@ -80,7 +81,7 @@ fun ReportWithAttachments.toDomain(): Report = with(report) {
         incidentAt = Instant.ofEpochMilli(incidentAt),
         incidentOffsetMinutes = incidentOffsetMinutes,
         location = if (latitude != null && longitude != null && accuracyM != null && locationCapturedAt != null) {
-            GeoPoint(latitude, longitude, accuracyM, Instant.ofEpochMilli(locationCapturedAt))
+            GeoPoint(latitude, longitude, accuracyM, Instant.ofEpochMilli(locationCapturedAt), locationName)
         } else {
             null
         },
@@ -108,6 +109,7 @@ fun Report.toEntity(): ReportEntity = ReportEntity(
     longitude = location?.longitude,
     accuracyM = location?.accuracyM,
     locationCapturedAt = location?.capturedAt?.toEpochMilli(),
+    locationName = location?.placeName,
     locationNote = locationNote,
     syncState = syncState,
     attemptCount = 0,
@@ -128,7 +130,9 @@ fun ReportDto.toDomain(): Report = Report(
     description = description,
     incidentAt = Instant.parse(incidentAt),
     incidentOffsetMinutes = incidentOffsetMinutes,
-    location = location?.let { GeoPoint(it.latitude, it.longitude, it.accuracyM.toFloat(), Instant.parse(it.capturedAt)) },
+    location = location?.let {
+        GeoPoint(it.latitude, it.longitude, it.accuracyM.toFloat(), Instant.parse(it.capturedAt), it.name)
+    },
     locationNote = locationNote.orEmpty(),
     syncState = SyncState.SYNCED,
     lastError = null,

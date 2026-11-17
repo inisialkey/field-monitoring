@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +39,8 @@ private const val LOW_ACCURACY_METERS = 50
 fun LocationField(
     status: LocationStatus,
     location: GeoPoint?,
+    resolvingPlace: Boolean,
+    online: Boolean,
     onRequest: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
@@ -63,14 +64,22 @@ fun LocationField(
                     Text(stringResource(R.string.location_get), modifier = Modifier.padding(start = 8.dp))
                 }
             }
-            LocationStatus.Searching -> Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                Text(stringResource(R.string.location_searching), style = MaterialTheme.typography.bodyMedium)
+            LocationStatus.Searching -> if (location != null) {
+                AcquiredLocation(location, resolvingPlace, online)
+                RefreshLocationButton(searching = true, onClick = onRequest)
+            } else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Text(stringResource(R.string.location_searching), style = MaterialTheme.typography.bodyMedium)
+                }
             }
-            LocationStatus.Acquired -> if (location != null) AcquiredLocation(location, onRequest)
+            LocationStatus.Acquired -> if (location != null) {
+                AcquiredLocation(location, resolvingPlace, online)
+                RefreshLocationButton(searching = false, onClick = onRequest)
+            }
             LocationStatus.Approximate -> {
                 Text(stringResource(R.string.location_approximate), style = MaterialTheme.typography.bodyMedium)
                 OutlinedButton(onClick = onOpenSettings) { Text(stringResource(R.string.action_open_settings)) }
@@ -88,24 +97,26 @@ fun LocationField(
 }
 
 @Composable
-private fun AcquiredLocation(location: GeoPoint, onRefresh: () -> Unit) {
+private fun AcquiredLocation(location: GeoPoint, resolvingPlace: Boolean, online: Boolean) {
     val accuracy = location.accuracyM.roundToInt()
     val lowAccuracy = accuracy > LOW_ACCURACY_METERS
     val app = LocalAppColors.current
     val container = if (lowAccuracy) app.warningContainer else MaterialTheme.colorScheme.primaryContainer
     val content = if (lowAccuracy) app.onWarningContainer else MaterialTheme.colorScheme.onPrimaryContainer
     Surface(shape = MaterialTheme.shapes.medium, color = container, contentColor = content, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconBadge(R.drawable.ic_location_on, container = content.copy(alpha = 0.12f), content = content)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                val placeName = location.placeName
+                when {
+                    placeName != null -> Text(placeName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    resolvingPlace -> Text(stringResource(R.string.location_name_searching), style = MaterialTheme.typography.bodyMedium)
+                    !online -> Text(stringResource(R.string.location_name_offline), style = MaterialTheme.typography.bodyMedium)
+                }
                 Text(
                     stringResource(if (lowAccuracy) R.string.location_low_accuracy else R.string.location_accuracy, accuracy),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    style = if (placeName == null) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (placeName == null) FontWeight.SemiBold else FontWeight.Normal,
                 )
                 Text(location.coordinates(), style = MaterialTheme.typography.bodyMedium)
                 Text(
@@ -113,9 +124,25 @@ private fun AcquiredLocation(location: GeoPoint, onRefresh: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            TextButton(onClick = onRefresh, colors = ButtonDefaults.textButtonColors(contentColor = content)) {
-                Text(stringResource(R.string.location_refresh), fontWeight = FontWeight.Bold)
-            }
         }
+    }
+}
+
+@Composable
+private fun RefreshLocationButton(searching: Boolean, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = !searching,
+        colors = ButtonDefaults.outlinedButtonColors(disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+    ) {
+        if (searching) {
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+        } else {
+            Icon(painterResource(R.drawable.ic_my_location), contentDescription = null, modifier = Modifier.size(18.dp))
+        }
+        Text(
+            stringResource(if (searching) R.string.location_searching else R.string.location_refresh),
+            modifier = Modifier.padding(start = 8.dp),
+        )
     }
 }

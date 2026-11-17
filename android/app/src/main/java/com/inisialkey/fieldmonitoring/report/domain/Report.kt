@@ -22,6 +22,7 @@ data class GeoPoint(
     val longitude: Double,
     val accuracyM: Float,
     val capturedAt: Instant,
+    val placeName: String? = null,
 )
 
 data class Photo(val id: String, val localPath: String?, val uploaded: Boolean)

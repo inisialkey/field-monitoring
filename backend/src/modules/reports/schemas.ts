@@ -5,6 +5,7 @@ const location = z.object({
   longitude: z.number().min(-180).max(180),
   accuracyM: z.number().min(0),
   capturedAt: z.iso.datetime({ offset: true }),
+  name: z.string().trim().max(200).nullish(),
 });
 
 export const createReportSchema = z

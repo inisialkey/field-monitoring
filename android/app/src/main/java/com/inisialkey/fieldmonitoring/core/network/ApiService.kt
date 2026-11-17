@@ -76,7 +76,13 @@ data class SessionResponse(
 )
 
 @Serializable
-data class LocationDto(val latitude: Double, val longitude: Double, val accuracyM: Double, val capturedAt: String)
+data class LocationDto(
+    val latitude: Double,
+    val longitude: Double,
+    val accuracyM: Double,
+    val capturedAt: String,
+    val name: String? = null,
+)
 
 @Serializable
 data class CreateReportRequest(

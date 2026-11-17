@@ -44,6 +44,7 @@ function toLocationDto(report: ReportRecord) {
     longitude: report.longitude,
     accuracyM: report.accuracyM,
     capturedAt: report.locationCapturedAt.toISOString(),
+    name: report.locationName,
   };
 }
 
@@ -122,6 +123,7 @@ export async function createReport(principal: Principal, id: string, input: Crea
         longitude: input.location?.longitude ?? null,
         accuracyM: input.location?.accuracyM ?? null,
         locationCapturedAt: input.location ? new Date(input.location.capturedAt) : null,
+        locationName: input.location?.name || null,
         locationNote: input.locationNote || null,
         createdAt: new Date(input.createdAt),
       },

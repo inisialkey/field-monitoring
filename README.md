@@ -11,7 +11,7 @@ An offline-first Android app with a backend for monitoring and evaluating enviro
 **Field Officer**
 
 - Signs in once while online. The session stays on the device until logout, so the app keeps working offline.
-- Creates a report starting from photos (camera or gallery), then the GPS location or a written location note, program category, title, description, and observation time. Drafts are saved automatically.
+- Creates a report starting from photos (camera or gallery), then the GPS location (with its place name, looked up when online) or a written location note, program category, title, description, and observation time. Drafts are saved automatically.
 - Chooses from BPDLH program categories: forest and land rehabilitation, mangrove, peatland restoration, social forestry, renewable energy, waste management, biodiversity, and other.
 - Submitted reports are sent in the background and retried when the connection comes back. Every report shows its status: draft, waiting, sending (with photo progress), sent, failed, or needs attention.
 - Sees the evaluation result on the report after the next sync.

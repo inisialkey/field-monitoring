@@ -77,8 +77,10 @@ fun ColumnScope.ReportDetailSections(report: Report, forOwner: Boolean, onOpenPh
         InfoRow(
             R.drawable.ic_location_on,
             stringResource(R.string.detail_location),
-            report.location?.let { stringResource(R.string.detail_coordinates, it.coordinates(), it.accuracyM.roundToInt()) }
-                ?: stringResource(R.string.no_gps),
+            report.location?.let {
+                listOfNotNull(it.placeName, stringResource(R.string.detail_coordinates, it.coordinates(), it.accuracyM.roundToInt()))
+                    .joinToString("\n")
+            } ?: stringResource(R.string.no_gps),
         )
         if (report.locationNote.isNotBlank()) {
             InfoRow(R.drawable.ic_map, stringResource(R.string.detail_location_note), report.locationNote)

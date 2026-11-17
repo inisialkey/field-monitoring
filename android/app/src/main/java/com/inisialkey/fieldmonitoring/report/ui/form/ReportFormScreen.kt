@@ -289,6 +289,8 @@ private fun ReportFormContent(
             LocationField(
                 status = state.location,
                 location = report.location,
+                resolvingPlace = state.resolvingPlace,
+                online = state.online,
                 onRequest = requestLocation,
                 onOpenSettings = openSettings,
             )

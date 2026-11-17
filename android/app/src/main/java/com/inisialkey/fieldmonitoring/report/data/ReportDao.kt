@@ -56,6 +56,9 @@ interface ReportDao {
     @Query("UPDATE reports SET sync_state = 'SYNCED', attempt_count = 0, last_error = NULL, received_at = :receivedAt WHERE id = :id")
     suspend fun markSynced(id: String, receivedAt: Long)
 
+    @Query("UPDATE reports SET location_name = :name WHERE id = :id")
+    suspend fun updateLocationName(id: String, name: String)
+
     @Query("UPDATE attachments SET uploaded = :uploaded WHERE id IN (:ids)")
     suspend fun setUploaded(ids: List<String>, uploaded: Boolean)
 

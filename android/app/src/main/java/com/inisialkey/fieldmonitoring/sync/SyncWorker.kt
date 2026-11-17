@@ -15,6 +15,7 @@ import com.inisialkey.fieldmonitoring.core.network.ReportDto
 import com.inisialkey.fieldmonitoring.core.network.ReportOwner
 import com.inisialkey.fieldmonitoring.core.network.apiError
 import com.inisialkey.fieldmonitoring.report.data.AttachmentEntity
+import com.inisialkey.fieldmonitoring.report.data.PlaceNameResolver
 import com.inisialkey.fieldmonitoring.report.data.ReportDao
 import com.inisialkey.fieldmonitoring.report.data.ReportEntity
 import com.inisialkey.fieldmonitoring.report.data.ReportRepository
@@ -39,6 +40,7 @@ class SyncWorker @AssistedInject constructor(
     private val dao: ReportDao,
     private val reports: ReportRepository,
     private val api: ApiService,
+    private val placeNames: PlaceNameResolver,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -65,7 +67,7 @@ class SyncWorker @AssistedInject constructor(
         sessionStore.session.value?.let { it.userId == ownerId && !it.expired } == true
 
     private suspend fun send(item: ReportWithAttachments): SyncFailure? {
-        val report = item.report
+        val report = withPlaceName(item.report)
         val owner = ReportOwner(report.ownerId)
         val attachments = item.attachments.sortedBy { it.addedAt }
         if (attachments.any { !it.uploaded && !it.hasLocalFile() }) return SyncFailure.PhotoMissing
@@ -88,6 +90,15 @@ class SyncWorker @AssistedInject constructor(
         } catch (e: SerializationException) {
             SyncFailure.Network
         }
+    }
+
+    private suspend fun withPlaceName(report: ReportEntity): ReportEntity {
+        val latitude = report.latitude ?: return report
+        val longitude = report.longitude ?: return report
+        if (report.locationName != null) return report
+        val name = placeNames.resolve(latitude, longitude) ?: return report
+        dao.updateLocationName(report.id, name)
+        return report.copy(locationName = name)
     }
 
     private suspend fun finalize(reportId: String, attachments: List<AttachmentEntity>, owner: ReportOwner): ReportDto {
@@ -176,7 +187,7 @@ private fun ReportEntity.toRequest() = CreateReportRequest(
     incidentAt = Instant.ofEpochMilli(incidentAt).toString(),
     incidentOffsetMinutes = incidentOffsetMinutes,
     location = if (latitude != null && longitude != null && accuracyM != null && locationCapturedAt != null) {
-        LocationDto(latitude, longitude, accuracyM.toDouble(), Instant.ofEpochMilli(locationCapturedAt).toString())
+        LocationDto(latitude, longitude, accuracyM.toDouble(), Instant.ofEpochMilli(locationCapturedAt).toString(), locationName)
     } else {
         null
     },

@@ -14,11 +14,13 @@ import com.inisialkey.fieldmonitoring.R
 import com.inisialkey.fieldmonitoring.ReportForm
 import com.inisialkey.fieldmonitoring.auth.data.SessionStore
 import com.inisialkey.fieldmonitoring.core.ApplicationScope
+import com.inisialkey.fieldmonitoring.core.ConnectivityMonitor
 import com.inisialkey.fieldmonitoring.core.UserMessage
 import com.inisialkey.fieldmonitoring.core.UserMessages
 import com.inisialkey.fieldmonitoring.core.ui.deviceOffsetMinutes
 import com.inisialkey.fieldmonitoring.report.data.LocationProvider
 import com.inisialkey.fieldmonitoring.report.data.PhotoStore
+import com.inisialkey.fieldmonitoring.report.data.PlaceNameResolver
 import com.inisialkey.fieldmonitoring.report.data.ReportRepository
 import com.inisialkey.fieldmonitoring.report.domain.Category
 import com.inisialkey.fieldmonitoring.report.domain.FieldError
@@ -56,6 +58,8 @@ data class ReportFormUiState(
     val errors: Map<ReportField, FieldError> = emptyMap(),
     val submitAttempt: Int = 0,
     val location: LocationStatus = LocationStatus.Idle,
+    val resolvingPlace: Boolean = false,
+    val online: Boolean = true,
     val processingPhoto: Boolean = false,
     val confirmingSubmit: Boolean = false,
     val submitted: Boolean = false,
@@ -71,6 +75,8 @@ class ReportFormViewModel @Inject constructor(
     private val reports: ReportRepository,
     private val photos: PhotoStore,
     private val locationProvider: LocationProvider,
+    private val placeNames: PlaceNameResolver,
+    connectivity: ConnectivityMonitor,
     private val userMessages: UserMessages,
     @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
@@ -89,8 +95,15 @@ class ReportFormViewModel @Inject constructor(
 
     private var dirty = false
     private var saveJob: Job? = null
+    private var placeJob: Job? = null
 
     init {
+        viewModelScope.launch {
+            connectivity.isOnline.collect { online ->
+                _state.update { it.copy(online = online) }
+                if (online && !_state.value.loading) resolvePlaceName()
+            }
+        }
         viewModelScope.launch {
             val existing = reports.getReport(reportId, ownerId)
             if (existing != null) {
@@ -107,6 +120,7 @@ class ReportFormViewModel @Inject constructor(
                     location = if (existing?.location != null) LocationStatus.Acquired else LocationStatus.Idle,
                 )
             }
+            resolvePlaceName()
             snapshotFlow { listOf(title.text.toString(), description.text.toString(), locationNote.text.toString()) }
                 .drop(1)
                 .collect { onEdited() }
@@ -138,7 +152,28 @@ class ReportFormViewModel @Inject constructor(
                     else -> it.copy(location = LocationStatus.Unavailable(needsSettings = false))
                 }
             }
-            if (point != null && (dirty || _state.value.saved)) onEdited()
+            if (point != null) {
+                if (dirty || _state.value.saved) onEdited()
+                placeJob?.cancel()
+                resolvePlaceName()
+            }
+        }
+    }
+
+    private fun resolvePlaceName() {
+        val location = _state.value.report.location ?: return
+        if (location.placeName != null || !_state.value.online || placeJob?.isActive == true) return
+        _state.update { it.copy(resolvingPlace = true) }
+        placeJob = viewModelScope.launch {
+            val name = placeNames.resolve(location.latitude, location.longitude)
+            val current = _state.value.report.location
+            val samePoint = current != null && current.latitude == location.latitude && current.longitude == location.longitude
+            if (name != null && current != null && samePoint) {
+                _state.update { it.copy(resolvingPlace = false, report = it.report.copy(location = current.copy(placeName = name))) }
+                if (dirty || _state.value.saved) onEdited()
+            } else {
+                _state.update { it.copy(resolvingPlace = false) }
+            }
         }
     }
 

@@ -85,7 +85,9 @@
     <string name="location_accuracy">Akurasi ±%1$d m</string>
     <string name="location_low_accuracy">Akurasi rendah (±%1$d m). Coba di area terbuka.</string>
     <string name="location_captured_at">Diambil %1$s</string>
-    <string name="location_refresh">Perbarui</string>
+    <string name="location_refresh">Perbarui lokasi</string>
+    <string name="location_name_searching">Mencari nama lokasi…</string>
+    <string name="location_name_offline">Nama lokasi muncul saat online.</string>
     <string name="location_approximate">Hanya lokasi perkiraan. Izinkan lokasi akurat agar titik kegiatan tepat.</string>
     <string name="location_unavailable">Lokasi tidak tersedia.</string>
     <string name="field_location_note">Keterangan lokasi</string>

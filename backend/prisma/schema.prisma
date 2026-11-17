@@ -85,6 +85,7 @@ model Report {
   longitude             Float?
   accuracyM             Float?       @map("accuracy_m")
   locationCapturedAt    DateTime?    @map("location_captured_at") @db.Timestamptz(3)
+  locationName          String?      @map("location_name") @db.VarChar(200)
   locationNote          String?      @map("location_note") @db.VarChar(200)
   status                ReportStatus @default(SUBMITTED)
   createdAt             DateTime     @map("created_at") @db.Timestamptz(3)

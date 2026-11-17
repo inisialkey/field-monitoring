@@ -8,7 +8,7 @@ import com.inisialkey.fieldmonitoring.report.data.AttachmentEntity
 import com.inisialkey.fieldmonitoring.report.data.ReportDao
 import com.inisialkey.fieldmonitoring.report.data.ReportEntity
 
-@Database(entities = [ReportEntity::class, AttachmentEntity::class], version = 2)
+@Database(entities = [ReportEntity::class, AttachmentEntity::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun reportDao(): ReportDao
 
@@ -20,6 +20,12 @@ abstract class AppDatabase : RoomDatabase() {
                         "'FOREST_REHABILITATION', 'MANGROVE', 'PEATLAND_RESTORATION', 'SOCIAL_FORESTRY', " +
                         "'RENEWABLE_ENERGY', 'WASTE_MANAGEMENT', 'BIODIVERSITY', 'OTHER')",
                 )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reports ADD COLUMN location_name TEXT")
             }
         }
     }

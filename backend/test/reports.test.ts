@@ -45,6 +45,15 @@ describe("report submission", () => {
     expect(await prisma.report.count()).toBe(1);
   });
 
+  it("keeps the location name sent with the coordinates", async () => {
+    await createUser("rina", "FIELD_OFFICER");
+    const session = await signIn("rina");
+    const reportId = randomUUID();
+    await putReport(session, reportId);
+    const report = await (await readReport(session, reportId)).json();
+    expect(report.location.name).toBe("Pantai Bahagia, Muara Gembong, Bekasi, Jawa Barat");
+  });
+
   it("rejects a report whose owner differs from the signed-in user", async () => {
     await createUser("rina", "FIELD_OFFICER");
     const dedi = await createUser("dedi", "FIELD_OFFICER");

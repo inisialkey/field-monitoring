@@ -69,6 +69,7 @@ fun locationSummary(report: Report): String {
     val note = report.locationNote.trim()
     return when {
         location == null -> listOf(stringResource(R.string.no_gps), note).filter { it.isNotEmpty() }.joinToString(" · ")
+        location.placeName != null -> location.placeName
         note.isNotEmpty() -> note
         else -> location.coordinates()
     }
