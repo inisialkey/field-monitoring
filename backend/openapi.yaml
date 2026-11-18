@@ -1,0 +1,779 @@
+openapi: 3.1.0
+info:
+  title: Field Monitoring & Evaluation API
+  version: 1.0.1
+  description: |
+    Backend for the Field Monitoring & Evaluation Android app.
+
+    Field Officers create reports on the device and send each one in three steps that are safe to repeat:
+    create the report with a device-generated ID, upload every photo, then finalize. Evaluators review
+    finalized reports and record one final evaluation per report.
+
+    Protected endpoints need an access token from `/auth/login` or `/auth/refresh` in the
+    `Authorization: Bearer <token>` header. Access tokens expire after 5 minutes. Refresh tokens rotate
+    on every use and are bound to the device ID.
+
+    Every error uses the `Error` schema. `details` lists the invalid fields for `VALIDATION_ERROR`
+    and the missing attachment IDs for `ATTACHMENTS_INCOMPLETE`.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local Docker Compose
+tags:
+  - name: Auth
+    description: Sign in, token rotation, and sign out
+  - name: Reports
+    description: Field Officer reports and their attachments
+  - name: Evaluations
+    description: Evaluator queue and evaluation results
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Sign in
+      description: Returns a new token pair for the given device. Wrong usernames and wrong passwords get the same answer.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Signed in.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Wrong username or password (`INVALID_CREDENTIALS`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: The account has been revoked (`ACCOUNT_REVOKED`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshTokens
+      summary: Rotate the tokens
+      description: >-
+        Exchanges a refresh token for a new token pair and revokes the old refresh token. The device ID must match
+        the one used at sign in. A refresh token works once, so concurrent refreshes with the same token get one success.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New token pair.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: >-
+            The refresh token is unknown, already used, expired, issued to another device, or belongs to a revoked
+            account (`INVALID_REFRESH_TOKEN`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Sign out
+      description: Revokes the refresh token. Unknown or already revoked tokens are accepted, so the call is safe to repeat.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "204":
+          description: Signed out.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /me/reports:
+    get:
+      tags: [Reports]
+      operationId: listOwnReports
+      summary: List my reports
+      description: All reports of the signed-in Field Officer, newest first, with their evaluation results.
+      responses:
+        "200":
+          description: The reports.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /reports/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ReportId"
+    get:
+      tags: [Reports]
+      operationId: getReport
+      summary: Get a report
+      description: The owner can read any of their reports. Evaluators can read finalized reports only.
+      responses:
+        "200":
+          description: The report.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Reports]
+      operationId: createReport
+      summary: Create a report
+      description: >-
+        Creates the report under the device-generated ID. Sending the same ID again returns the stored report with
+        status 200 instead of creating a duplicate. `ownerUserId` must be the signed-in user. Field Officers only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReportRequest"
+      responses:
+        "200":
+          description: A report with this ID already exists. The stored report is returned unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "201":
+          description: Report created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: >-
+            The caller is not a Field Officer (`FORBIDDEN`), or `ownerUserId` or the existing report belongs to
+            another user (`OWNER_MISMATCH`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /reports/{id}/attachments/{attachmentId}:
+    parameters:
+      - $ref: "#/components/parameters/ReportId"
+      - $ref: "#/components/parameters/AttachmentId"
+    put:
+      tags: [Reports]
+      operationId: uploadAttachment
+      summary: Upload an attachment
+      description: >-
+        Uploads one file under a device-generated ID. The type comes from the file's bytes: JPEG photos up to 2 MB
+        and PDF documents up to 10 MB. A report holds at most 5 photos and 3 documents. Uploading the same ID again
+        returns the stored attachment with status 200. Field Officers only, for their own reports.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  contentMediaType: application/octet-stream
+      responses:
+        "200":
+          description: An attachment with this ID already exists. The stored attachment is returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attachment"
+        "201":
+          description: Attachment stored.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attachment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The report is already finalized (`REPORT_FINALIZED`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: The file is larger than its type allows (`FILE_TOO_LARGE`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: The file is neither a JPEG nor a PDF (`UNSUPPORTED_MEDIA_TYPE`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /reports/{id}/finalize:
+    parameters:
+      - $ref: "#/components/parameters/ReportId"
+    post:
+      tags: [Reports]
+      operationId: finalizeReport
+      summary: Finalize a report
+      description: >-
+        Marks the report complete and visible to Evaluators once every listed attachment is stored and at least one
+        is a photo. Finalizing again returns the report unchanged. Field Officers only, for their own reports.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinalizeRequest"
+      responses:
+        "200":
+          description: The finalized report.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >-
+            Some listed attachments are not stored yet (`ATTACHMENTS_INCOMPLETE`). Each entry in `details` has the
+            missing `attachmentId`, so the client can upload it again.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /reports/{id}/evaluation:
+    parameters:
+      - $ref: "#/components/parameters/ReportId"
+    post:
+      tags: [Evaluations]
+      operationId: evaluateReport
+      summary: Evaluate a report
+      description: Records the final evaluation of a finalized report. Each report has one evaluation. Evaluators only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluationRequest"
+      responses:
+        "201":
+          description: Evaluation recorded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Evaluation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The report already has an evaluation (`ALREADY_EVALUATED`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /evaluations/queue:
+    get:
+      tags: [Evaluations]
+      operationId: listEvaluationQueue
+      summary: List reports waiting for evaluation
+      description: Finalized reports without an evaluation, oldest first, 20 per page. Evaluators only.
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          description: The `nextCursor` value from the previous page.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: One page of the queue.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueuePage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /attachments/{id}/content:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Attachment ID.
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Reports]
+      operationId: downloadAttachment
+      summary: Download an attachment
+      description: Available to the report owner, and to Evaluators once the report is finalized.
+      responses:
+        "200":
+          description: The file.
+          headers:
+            Cache-Control:
+              description: Always `private, no-store`.
+              schema:
+                type: string
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                contentMediaType: image/jpeg
+            application/pdf:
+              schema:
+                type: string
+                contentMediaType: application/pdf
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ReportId:
+      name: id
+      in: path
+      required: true
+      description: Report ID, a UUID generated on the device.
+      schema:
+        type: string
+        format: uuid
+    AttachmentId:
+      name: attachmentId
+      in: path
+      required: true
+      description: Attachment ID, a UUID generated on the device.
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Malformed request, such as invalid JSON, an ID that is not a UUID, or an invalid cursor (`BAD_REQUEST`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: The access token is missing, invalid, or expired (`UNAUTHORIZED`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: The caller's role is not allowed to do this (`FORBIDDEN`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: The resource does not exist or is not visible to the caller (`NOT_FOUND`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ValidationError:
+      description: The body breaks a validation rule (`VALIDATION_ERROR`). `details` lists each `field` and `issue`.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Error:
+      type: object
+      required: [code, message, details]
+      properties:
+        code:
+          type: string
+          enum:
+            - BAD_REQUEST
+            - UNAUTHORIZED
+            - INVALID_CREDENTIALS
+            - INVALID_REFRESH_TOKEN
+            - FORBIDDEN
+            - ACCOUNT_REVOKED
+            - OWNER_MISMATCH
+            - NOT_FOUND
+            - ALREADY_EVALUATED
+            - ATTACHMENTS_INCOMPLETE
+            - REPORT_FINALIZED
+            - FILE_TOO_LARGE
+            - UNSUPPORTED_MEDIA_TYPE
+            - VALIDATION_ERROR
+            - INTERNAL_ERROR
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+      examples:
+        - code: VALIDATION_ERROR
+          message: Invalid input
+          details:
+            - field: title
+              issue: Too small
+    Role:
+      type: string
+      enum: [FIELD_OFFICER, EVALUATOR]
+    User:
+      type: object
+      required: [id, username, displayName, role]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        displayName:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+    Session:
+      type: object
+      required: [accessToken, accessTokenExpiresIn, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+          description: JWT signed with HS256. The `sub` claim is the user ID and the `role` claim is the role.
+        accessTokenExpiresIn:
+          type: integer
+          description: Lifetime of the access token in seconds.
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+    LoginRequest:
+      type: object
+      required: [username, password, deviceId]
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 50
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: Stable ID of the app installation. Refresh tokens are bound to it.
+    RefreshRequest:
+      type: object
+      required: [refreshToken, deviceId]
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          maxLength: 200
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 64
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          maxLength: 200
+    Category:
+      type: string
+      enum:
+        - FOREST_REHABILITATION
+        - MANGROVE
+        - PEATLAND_RESTORATION
+        - SOCIAL_FORESTRY
+        - RENEWABLE_ENERGY
+        - WASTE_MANAGEMENT
+        - BIODIVERSITY
+        - OTHER
+    Location:
+      type: object
+      required: [latitude, longitude, accuracyM, capturedAt]
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        accuracyM:
+          type: number
+          minimum: 0
+          description: Horizontal accuracy in meters.
+        capturedAt:
+          type: string
+          format: date-time
+        name:
+          type: [string, "null"]
+          maxLength: 200
+          description: Place name from reverse geocoding, when the device could look it up.
+    CreateReportRequest:
+      type: object
+      required:
+        - ownerUserId
+        - title
+        - category
+        - description
+        - incidentAt
+        - incidentOffsetMinutes
+        - location
+        - locationNote
+        - createdAt
+      properties:
+        ownerUserId:
+          type: string
+          format: uuid
+          description: Must be the signed-in user.
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        category:
+          $ref: "#/components/schemas/Category"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        incidentAt:
+          type: string
+          format: date-time
+          description: Observation time. It may be at most 10 minutes ahead of the server clock.
+        incidentOffsetMinutes:
+          type: integer
+          minimum: -720
+          maximum: 840
+          description: UTC offset of the observation place, used to show the local time.
+        location:
+          oneOf:
+            - $ref: "#/components/schemas/Location"
+            - type: "null"
+        locationNote:
+          type: [string, "null"]
+          maxLength: 200
+          description: Written location. Required when `location` is null.
+        createdAt:
+          type: string
+          format: date-time
+          description: When the report was created on the device.
+    Attachment:
+      type: object
+      required: [id, kind, mimeType, sizeBytes, sha256]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [PHOTO, DOCUMENT]
+        mimeType:
+          type: string
+          enum: [image/jpeg, application/pdf]
+        sizeBytes:
+          type: integer
+          minimum: 1
+        sha256:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+    Evaluation:
+      type: object
+      required: [result, notes, evaluatorName, createdAt]
+      properties:
+        result:
+          type: string
+          enum: [VALID, INVALID]
+        notes:
+          type: [string, "null"]
+        evaluatorName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    EvaluationRequest:
+      type: object
+      required: [result]
+      properties:
+        result:
+          type: string
+          enum: [VALID, INVALID]
+        notes:
+          type: [string, "null"]
+          maxLength: 1000
+          description: Required when `result` is `INVALID`.
+    FinalizeRequest:
+      type: object
+      required: [attachmentIds]
+      properties:
+        attachmentIds:
+          type: array
+          minItems: 1
+          maxItems: 8
+          description: Every attachment the device holds for the report. At least one must be a stored photo.
+          items:
+            type: string
+            format: uuid
+    Report:
+      type: object
+      required:
+        - id
+        - ownerUserId
+        - reporterName
+        - title
+        - category
+        - description
+        - incidentAt
+        - incidentOffsetMinutes
+        - location
+        - locationNote
+        - status
+        - createdAt
+        - receivedAt
+        - finalizedAt
+        - attachments
+        - evaluation
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerUserId:
+          type: string
+          format: uuid
+        reporterName:
+          type: string
+        title:
+          type: string
+        category:
+          $ref: "#/components/schemas/Category"
+        description:
+          type: string
+        incidentAt:
+          type: string
+          format: date-time
+        incidentOffsetMinutes:
+          type: integer
+        location:
+          oneOf:
+            - $ref: "#/components/schemas/Location"
+            - type: "null"
+        locationNote:
+          type: [string, "null"]
+        status:
+          type: string
+          enum: [SUBMITTED, EVALUATED]
+        createdAt:
+          type: string
+          format: date-time
+        receivedAt:
+          type: string
+          format: date-time
+          description: When the server first stored the report.
+        finalizedAt:
+          type: [string, "null"]
+          format: date-time
+          description: When the report became visible to Evaluators. Null until finalized.
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attachment"
+        evaluation:
+          oneOf:
+            - $ref: "#/components/schemas/Evaluation"
+            - type: "null"
+    QueuePage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Report"
+        nextCursor:
+          type: [string, "null"]
+          description: Pass it as `cursor` to get the next page. Null on the last page.

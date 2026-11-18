@@ -111,7 +111,7 @@ cd android
 ./gradlew testDebugUnitTest
 ```
 
-- **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, and input validation.
+- **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, input validation, and the OpenAPI contract.
 - **Android:** report rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
 
 GitHub Actions runs both suites and builds the app on every push and pull request to `main`. Pushing a version tag such as `v1.0.2` publishes signed APKs to Releases.
@@ -172,6 +172,8 @@ After sending, the worker downloads the user's reports to pick up evaluation res
 - **Photos.** The app resizes photos to 1920 px at JPEG quality 80 (2 MB at most). The server checks the file type from the file's bytes and serves photos only to the report owner and Evaluators.
 
 ## API
+
+The full contract, with request and response schemas and every error code, is in [`backend/openapi.yaml`](backend/openapi.yaml) (OpenAPI 3.1). Import it into Postman or Insomnia, or open it in [Swagger Editor](https://editor.swagger.io/), to try the endpoints. A contract test checks that the file covers every endpoint and matches real responses.
 
 Base path `/api/v1`. Errors have the shape `{ "code": "...", "message": "...", "details": [] }`.
 
