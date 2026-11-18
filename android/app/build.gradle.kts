@@ -87,6 +87,10 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+
+    lint {
+        disable += "PluralsCandidate"
+    }
 }
 
 kotlin {

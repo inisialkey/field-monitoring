@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inisialkey.fieldmonitoring.auth.data.SessionStore
@@ -26,7 +27,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             FieldMonitoringTheme {
                 val loaded by sessionStore.isLoaded.collectAsStateWithLifecycle()
-                if (loaded) AppNavHost(initialSession = sessionStore.session.value)
+                if (loaded) {
+                    val initialSession = remember { sessionStore.session.value }
+                    AppNavHost(initialSession = initialSession)
+                }
             }
         }
     }
