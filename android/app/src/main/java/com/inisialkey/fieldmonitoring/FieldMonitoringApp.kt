@@ -12,7 +12,10 @@ import javax.inject.Inject
 import okhttp3.OkHttpClient
 
 @HiltAndroidApp
-class FieldMonitoringApp : Application(), Configuration.Provider, SingletonImageLoader.Factory {
+class FieldMonitoringApp :
+    Application(),
+    Configuration.Provider,
+    SingletonImageLoader.Factory {
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory

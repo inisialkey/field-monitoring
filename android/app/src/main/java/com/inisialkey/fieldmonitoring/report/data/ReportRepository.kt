@@ -14,7 +14,10 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-data class PendingCounts(val unsent: Int, val drafts: Int)
+data class PendingCounts(
+    val unsent: Int,
+    val drafts: Int,
+)
 
 @Singleton
 class ReportRepository @Inject constructor(
@@ -22,11 +25,9 @@ class ReportRepository @Inject constructor(
     private val photos: PhotoStore,
     private val syncScheduler: SyncScheduler,
 ) {
-    fun observeReports(ownerId: String): Flow<List<Report>> =
-        dao.observeAll(ownerId).map { reports -> reports.map { it.toDomain() } }
+    fun observeReports(ownerId: String): Flow<List<Report>> = dao.observeAll(ownerId).map { reports -> reports.map { it.toDomain() } }
 
-    fun observeReport(id: String, ownerId: String): Flow<Report?> =
-        dao.observe(id, ownerId).map { it?.toDomain() }
+    fun observeReport(id: String, ownerId: String): Flow<Report?> = dao.observe(id, ownerId).map { it?.toDomain() }
 
     suspend fun getReport(id: String, ownerId: String): Report? = dao.get(id, ownerId)?.toDomain()
 

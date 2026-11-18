@@ -34,8 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.inisialkey.fieldmonitoring.R
 import com.inisialkey.fieldmonitoring.core.ui.theme.LocalAppColors
 
-fun Modifier.contentWidth(): Modifier =
-    fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = 600.dp).fillMaxWidth()
+fun Modifier.contentWidth(): Modifier = fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = 600.dp).fillMaxWidth()
 
 @Composable
 fun BackButton(onClick: () -> Unit) {

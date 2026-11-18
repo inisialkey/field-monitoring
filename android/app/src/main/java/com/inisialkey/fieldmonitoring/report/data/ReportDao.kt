@@ -75,7 +75,13 @@ interface ReportDao {
         "UPDATE reports SET evaluation_result = :result, evaluation_notes = :notes, evaluator_name = :evaluatorName, " +
             "evaluated_at = :evaluatedAt WHERE id = :id AND sync_state = 'SYNCED'",
     )
-    suspend fun updateEvaluation(id: String, result: EvaluationResult?, notes: String?, evaluatorName: String?, evaluatedAt: Long?)
+    suspend fun updateEvaluation(
+        id: String,
+        result: EvaluationResult?,
+        notes: String?,
+        evaluatorName: String?,
+        evaluatedAt: Long?,
+    )
 
     @Query("SELECT sync_state AS state, COUNT(*) AS count FROM reports WHERE owner_id = :ownerId GROUP BY sync_state")
     suspend fun countByState(ownerId: String): List<StateCount>

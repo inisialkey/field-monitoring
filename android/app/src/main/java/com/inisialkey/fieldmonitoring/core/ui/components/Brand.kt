@@ -134,8 +134,7 @@ fun greeting(): String = stringResource(
     },
 )
 
-fun initials(name: String): String =
-    name.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
+fun initials(name: String): String = name.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
 
 @Composable
 fun Avatar(
@@ -214,17 +213,21 @@ fun ConnectivityPill(online: Boolean, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AppCard(
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit,
-) {
+fun AppCard(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     val dark = LocalAppColors.current.isDark
     val colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     val elevation = CardDefaults.cardElevation(defaultElevation = if (dark) 0.dp else 2.dp)
     val border = if (dark) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
     if (onClick != null) {
-        Card(onClick, modifier, shape = MaterialTheme.shapes.large, colors = colors, elevation = elevation, border = border, content = content)
+        Card(
+            onClick,
+            modifier,
+            shape = MaterialTheme.shapes.large,
+            colors = colors,
+            elevation = elevation,
+            border = border,
+            content = content,
+        )
     } else {
         Card(modifier, shape = MaterialTheme.shapes.large, colors = colors, elevation = elevation, border = border, content = content)
     }

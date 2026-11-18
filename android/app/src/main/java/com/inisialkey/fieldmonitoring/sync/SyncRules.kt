@@ -4,7 +4,11 @@ sealed interface SyncFailure {
     data object Network : SyncFailure
     data object SessionUnavailable : SyncFailure
     data object PhotoMissing : SyncFailure
-    data class Http(val status: Int, val code: String? = null, val field: String? = null) : SyncFailure
+    data class Http(
+        val status: Int,
+        val code: String? = null,
+        val field: String? = null,
+    ) : SyncFailure
 }
 
 enum class AttentionReason { OWNER_MISMATCH, FORBIDDEN, PHOTO_MISSING, REJECTED }
@@ -14,7 +18,10 @@ sealed interface SyncDecision {
     data object GiveUp : SyncDecision
     data object Pause : SyncDecision
     data class ReturnToDraft(val field: String?) : SyncDecision
-    data class NeedsAttention(val reason: AttentionReason, val code: String? = null) : SyncDecision
+    data class NeedsAttention(
+        val reason: AttentionReason,
+        val code: String? = null,
+    ) : SyncDecision
 }
 
 object SyncRules {

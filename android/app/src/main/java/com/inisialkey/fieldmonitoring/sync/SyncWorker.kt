@@ -63,8 +63,7 @@ class SyncWorker @AssistedInject constructor(
         return Result.success()
     }
 
-    private fun canSyncFor(ownerId: String): Boolean =
-        sessionStore.session.value?.let { it.userId == ownerId && !it.expired } == true
+    private fun canSyncFor(ownerId: String): Boolean = sessionStore.session.value?.let { it.userId == ownerId && !it.expired } == true
 
     private suspend fun send(item: ReportWithAttachments): SyncFailure? {
         val report = withPlaceName(item.report)

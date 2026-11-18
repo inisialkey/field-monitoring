@@ -73,7 +73,11 @@ fun LoginScreen(onSignedIn: (Role) -> Unit, onBack: () -> Unit, viewModel: Login
         HeroHeader {
             if (reauth) {
                 IconButton(onClick = onBack, modifier = Modifier.offset(x = (-12).dp)) {
-                    Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back), tint = Color.White)
+                    Icon(
+                        painterResource(R.drawable.ic_arrow_back),
+                        contentDescription = stringResource(R.string.action_back),
+                        tint = Color.White,
+                    )
                 }
             }
             Surface(
@@ -153,7 +157,11 @@ fun LoginScreen(onSignedIn: (Role) -> Unit, onBack: () -> Unit, viewModel: Login
                         .height(56.dp),
                 ) {
                     if (state.loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
                     } else {
                         Text(stringResource(R.string.action_sign_in), style = MaterialTheme.typography.titleSmall)
                     }

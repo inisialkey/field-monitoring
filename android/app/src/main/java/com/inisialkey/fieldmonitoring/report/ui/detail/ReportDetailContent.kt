@@ -141,7 +141,11 @@ private fun EvaluationResultCard(evaluation: Evaluation, showInvalidHint: Boolea
                 )
             }
             if (showInvalidHint && !valid) {
-                Text(stringResource(R.string.detail_invalid_hint), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(R.string.detail_invalid_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
         }
     }
@@ -149,7 +153,11 @@ private fun EvaluationResultCard(evaluation: Evaluation, showInvalidHint: Boolea
 
 private enum class StepState { DONE, CURRENT, ERROR, UPCOMING }
 
-private data class Step(val title: String, val detail: String?, val state: StepState)
+private data class Step(
+    val title: String,
+    val detail: String?,
+    val state: StepState,
+)
 
 @Composable
 private fun StatusTimeline(report: Report) {

@@ -64,8 +64,7 @@ class PlaceNameResolver @Inject constructor(@ApplicationContext private val cont
     }
 }
 
-fun placeName(parts: List<String?>): String? =
-    parts.mapNotNull { part -> part?.trim()?.takeIf { it.isNotEmpty() } }
-        .distinct()
-        .takeIf { it.isNotEmpty() }
-        ?.joinToString(", ")
+fun placeName(parts: List<String?>): String? = parts.mapNotNull { part -> part?.trim()?.takeIf { it.isNotEmpty() } }
+    .distinct()
+    .takeIf { it.isNotEmpty() }
+    ?.joinToString(", ")

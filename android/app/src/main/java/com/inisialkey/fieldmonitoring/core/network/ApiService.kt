@@ -56,16 +56,28 @@ interface ApiService {
 }
 
 @Serializable
-data class LoginRequest(val username: String, val password: String, val deviceId: String)
+data class LoginRequest(
+    val username: String,
+    val password: String,
+    val deviceId: String,
+)
 
 @Serializable
-data class RefreshRequest(val refreshToken: String, val deviceId: String)
+data class RefreshRequest(
+    val refreshToken: String,
+    val deviceId: String,
+)
 
 @Serializable
 data class LogoutRequest(val refreshToken: String)
 
 @Serializable
-data class UserDto(val id: String, val username: String, val displayName: String, val role: Role)
+data class UserDto(
+    val id: String,
+    val username: String,
+    val displayName: String,
+    val role: Role,
+)
 
 @Serializable
 data class SessionResponse(
@@ -98,7 +110,10 @@ data class CreateReportRequest(
 )
 
 @Serializable
-data class AttachmentDto(val id: String, val kind: String)
+data class AttachmentDto(
+    val id: String,
+    val kind: String,
+)
 
 @Serializable
 data class EvaluationDto(
@@ -131,10 +146,20 @@ data class ReportDto(
 data class FinalizeRequest(val attachmentIds: List<String>)
 
 @Serializable
-data class QueuePage(val items: List<ReportDto>, val nextCursor: String?)
+data class QueuePage(
+    val items: List<ReportDto>,
+    val nextCursor: String?,
+)
 
 @Serializable
-data class EvaluationRequest(val result: EvaluationResult, val notes: String?)
+data class EvaluationRequest(
+    val result: EvaluationResult,
+    val notes: String?,
+)
 
 @Serializable
-data class ApiError(val code: String, val message: String, val details: List<Map<String, String>> = emptyList())
+data class ApiError(
+    val code: String,
+    val message: String,
+    val details: List<Map<String, String>> = emptyList(),
+)

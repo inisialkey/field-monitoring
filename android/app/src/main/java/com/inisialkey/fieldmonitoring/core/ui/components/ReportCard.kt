@@ -123,7 +123,12 @@ fun ReportCard(report: Report, onClick: () -> Unit, modifier: Modifier = Modifie
                 if (showReporter && report.reporterName != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Avatar(report.reporterName, size = 24.dp)
-                        Text(report.reporterName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            report.reporterName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
                 IconText(R.drawable.ic_location_on, locationSummary(report), maxLines = 2)

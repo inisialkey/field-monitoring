@@ -69,7 +69,10 @@ data class ReportWithAttachments(
     @Relation(parentColumn = "id", entityColumn = "report_id") val attachments: List<AttachmentEntity>,
 )
 
-data class StateCount(val state: SyncState, val count: Int)
+data class StateCount(
+    val state: SyncState,
+    val count: Int,
+)
 
 fun ReportWithAttachments.toDomain(): Report = with(report) {
     Report(

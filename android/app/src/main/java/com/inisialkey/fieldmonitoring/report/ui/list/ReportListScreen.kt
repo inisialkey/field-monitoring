@@ -282,22 +282,40 @@ private fun ConnectivityBanner(banner: Banner, onRetry: () -> Unit, onSignIn: ()
     val app = LocalAppColors.current
     val style = when (banner) {
         Banner.SessionExpired -> BannerStyle(
-            colors.errorContainer, colors.onErrorContainer, R.drawable.ic_lock, stringResource(R.string.banner_session_expired),
+            colors.errorContainer,
+            colors.onErrorContainer,
+            R.drawable.ic_lock,
+            stringResource(R.string.banner_session_expired),
         )
         is Banner.Failed -> BannerStyle(
-            colors.errorContainer, colors.onErrorContainer, R.drawable.ic_error, stringResource(R.string.banner_failed, banner.count),
+            colors.errorContainer,
+            colors.onErrorContainer,
+            R.drawable.ic_error,
+            stringResource(R.string.banner_failed, banner.count),
         )
         is Banner.Attention -> BannerStyle(
-            colors.errorContainer, colors.onErrorContainer, R.drawable.ic_block, stringResource(R.string.banner_attention, banner.count),
+            colors.errorContainer,
+            colors.onErrorContainer,
+            R.drawable.ic_block,
+            stringResource(R.string.banner_attention, banner.count),
         )
         is Banner.OfflinePending -> BannerStyle(
-            app.warningContainer, app.onWarningContainer, R.drawable.ic_cloud_off, stringResource(R.string.banner_offline_pending, banner.count),
+            app.warningContainer,
+            app.onWarningContainer,
+            R.drawable.ic_cloud_off,
+            stringResource(R.string.banner_offline_pending, banner.count),
         )
         Banner.Offline -> BannerStyle(
-            colors.surfaceContainerHigh, colors.onSurface, R.drawable.ic_cloud_off, stringResource(R.string.banner_offline),
+            colors.surfaceContainerHigh,
+            colors.onSurface,
+            R.drawable.ic_cloud_off,
+            stringResource(R.string.banner_offline),
         )
         is Banner.Sending -> BannerStyle(
-            colors.tertiaryContainer, colors.onTertiaryContainer, R.drawable.ic_sync, stringResource(R.string.banner_sending, banner.count),
+            colors.tertiaryContainer,
+            colors.onTertiaryContainer,
+            R.drawable.ic_sync,
+            stringResource(R.string.banner_sending, banner.count),
         )
     }
     Surface(

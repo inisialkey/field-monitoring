@@ -473,7 +473,11 @@ private fun FormTextField(
             {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Column(modifier = Modifier.weight(1f)) {
-                        if (error != null) FieldError(error) else if (supporting != null) Text(supporting)
+                        if (error != null) {
+                            FieldError(error)
+                        } else if (supporting != null) {
+                            Text(supporting)
+                        }
                     }
                     if (showCounter) Text(stringResource(R.string.char_counter, state.text.length, maxLength))
                 }

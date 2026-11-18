@@ -25,7 +25,11 @@ data class GeoPoint(
     val placeName: String? = null,
 )
 
-data class Photo(val id: String, val localPath: String?, val uploaded: Boolean)
+data class Photo(
+    val id: String,
+    val localPath: String?,
+    val uploaded: Boolean,
+)
 
 data class Evaluation(
     val result: EvaluationResult,

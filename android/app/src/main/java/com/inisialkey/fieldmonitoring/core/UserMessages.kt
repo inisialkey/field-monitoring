@@ -7,7 +7,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 
-data class UserMessage(@StringRes val text: Int, val args: List<Any> = emptyList())
+data class UserMessage(
+    @StringRes val text: Int,
+    val args: List<Any> = emptyList(),
+)
 
 @Singleton
 class UserMessages @Inject constructor() {

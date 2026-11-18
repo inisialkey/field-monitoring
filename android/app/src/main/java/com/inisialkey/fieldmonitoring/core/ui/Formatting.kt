@@ -16,8 +16,7 @@ private val DateTimeFormat = DateTimeFormatter.ofPattern("d MMM yyyy, HH.mm", In
 private val DateFormat = DateTimeFormatter.ofPattern("d MMM yyyy", Indonesian)
 private val TimeFormat = DateTimeFormatter.ofPattern("HH.mm", Indonesian)
 
-fun deviceOffsetMinutes(instant: Instant = Instant.now()): Int =
-    ZoneId.systemDefault().rules.getOffset(instant).totalSeconds / 60
+fun deviceOffsetMinutes(instant: Instant = Instant.now()): Int = ZoneId.systemDefault().rules.getOffset(instant).totalSeconds / 60
 
 fun formatDateTime(instant: Instant, offsetMinutes: Int = deviceOffsetMinutes(instant)): String =
     "${DateTimeFormat.format(instant.atOffset(offset(offsetMinutes)))} ${zoneLabel(offsetMinutes)}"

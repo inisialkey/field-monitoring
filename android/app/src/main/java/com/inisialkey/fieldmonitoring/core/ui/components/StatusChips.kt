@@ -58,10 +58,18 @@ fun SyncStatusChip(report: Report, modifier: Modifier = Modifier) {
     val status = LocalAppColors.current
     when (report.syncState) {
         SyncState.DRAFT -> StatusPill(
-            stringResource(R.string.sync_draft), R.drawable.ic_edit_note, colors.surfaceContainerHigh, colors.onSurfaceVariant, modifier,
+            stringResource(R.string.sync_draft),
+            R.drawable.ic_edit_note,
+            colors.surfaceContainerHigh,
+            colors.onSurfaceVariant,
+            modifier,
         )
         SyncState.PENDING_SYNC -> StatusPill(
-            stringResource(R.string.sync_pending), R.drawable.ic_schedule, status.warningContainer, status.onWarningContainer, modifier,
+            stringResource(R.string.sync_pending),
+            R.drawable.ic_schedule,
+            status.warningContainer,
+            status.onWarningContainer,
+            modifier,
         )
         SyncState.SYNCING -> StatusPill(
             stringResource(R.string.sync_syncing_progress, report.photos.count { it.uploaded }, report.photos.size),
@@ -71,13 +79,25 @@ fun SyncStatusChip(report: Report, modifier: Modifier = Modifier) {
             modifier,
         )
         SyncState.SYNCED -> StatusPill(
-            stringResource(R.string.sync_synced), R.drawable.ic_cloud_done, status.successContainer, status.onSuccessContainer, modifier,
+            stringResource(R.string.sync_synced),
+            R.drawable.ic_cloud_done,
+            status.successContainer,
+            status.onSuccessContainer,
+            modifier,
         )
         SyncState.FAILED -> StatusPill(
-            stringResource(R.string.sync_failed), R.drawable.ic_error, colors.errorContainer, colors.onErrorContainer, modifier,
+            stringResource(R.string.sync_failed),
+            R.drawable.ic_error,
+            colors.errorContainer,
+            colors.onErrorContainer,
+            modifier,
         )
         SyncState.NEEDS_ATTENTION -> StatusPill(
-            stringResource(R.string.sync_attention), R.drawable.ic_block, colors.errorContainer, colors.onErrorContainer, modifier,
+            stringResource(R.string.sync_attention),
+            R.drawable.ic_block,
+            colors.errorContainer,
+            colors.onErrorContainer,
+            modifier,
         )
     }
 }
@@ -88,13 +108,25 @@ fun EvaluationBadge(evaluation: Evaluation?, modifier: Modifier = Modifier) {
     val status = LocalAppColors.current
     when (evaluation?.result) {
         null -> StatusPill(
-            stringResource(R.string.evaluation_waiting), R.drawable.ic_hourglass_empty, colors.surfaceContainerHigh, colors.onSurfaceVariant, modifier,
+            stringResource(R.string.evaluation_waiting),
+            R.drawable.ic_hourglass_empty,
+            colors.surfaceContainerHigh,
+            colors.onSurfaceVariant,
+            modifier,
         )
         EvaluationResult.VALID -> StatusPill(
-            stringResource(R.string.evaluation_valid), R.drawable.ic_check_circle, status.successContainer, status.onSuccessContainer, modifier,
+            stringResource(R.string.evaluation_valid),
+            R.drawable.ic_check_circle,
+            status.successContainer,
+            status.onSuccessContainer,
+            modifier,
         )
         EvaluationResult.INVALID -> StatusPill(
-            stringResource(R.string.evaluation_invalid), R.drawable.ic_cancel, colors.errorContainer, colors.onErrorContainer, modifier,
+            stringResource(R.string.evaluation_invalid),
+            R.drawable.ic_cancel,
+            colors.errorContainer,
+            colors.onErrorContainer,
+            modifier,
         )
     }
 }

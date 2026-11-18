@@ -10,7 +10,10 @@ import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class QueuePage(val reports: List<Report>, val nextCursor: String?)
+data class QueuePage(
+    val reports: List<Report>,
+    val nextCursor: String?,
+)
 
 @Singleton
 class EvaluationRepository @Inject constructor(private val api: ApiService) {
