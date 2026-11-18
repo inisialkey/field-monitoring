@@ -45,13 +45,13 @@ curl -i http://localhost:3000/api/v1/me/reports
 - On the Android Emulator, use the `emulator` APK. It connects to `http://10.0.2.2:3000`, the host machine as seen from the emulator.
 
   ```bash
-  adb install field-monitoring-1.0.0-emulator.apk
+  adb install field-monitoring-1.0.1-emulator.apk
   ```
 
 - On a phone connected over USB with USB debugging on, use the `usb` APK. It connects to `http://localhost:3000`, which `adb reverse` forwards to your computer. Run `adb reverse` again whenever you reconnect the cable.
 
   ```bash
-  adb install field-monitoring-1.0.0-usb.apk
+  adb install field-monitoring-1.0.1-usb.apk
   adb reverse tcp:3000 tcp:3000
   ```
 
@@ -114,7 +114,7 @@ cd android
 - **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, and input validation.
 - **Android:** report rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
 
-GitHub Actions runs both suites and builds the app on every push and pull request to `main`. Pushing a version tag such as `v1.0.1` publishes signed APKs to Releases.
+GitHub Actions runs both suites and builds the app on every push and pull request to `main`. Pushing a version tag such as `v1.0.2` publishes signed APKs to Releases.
 
 ## Architecture
 
