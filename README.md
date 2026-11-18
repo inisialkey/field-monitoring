@@ -114,7 +114,9 @@ cd android
 - **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, input validation, and the OpenAPI contract.
 - **Android:** report rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
 
-GitHub Actions runs both suites and builds the app on every push and pull request to `main`. Pushing a version tag such as `v1.0.2` publishes signed APKs to Releases.
+Linters keep the code style consistent: `npm run lint` in `backend` runs ESLint with typescript-eslint, and `./gradlew spotlessCheck lintDebug` in `android` runs ktlint and Android Lint. `./gradlew spotlessApply` fixes Kotlin formatting.
+
+GitHub Actions runs the linters and both test suites, and builds the app, on every push and pull request to `main`. Pushing a version tag such as `v1.0.2` publishes signed APKs to Releases.
 
 ## Architecture
 
