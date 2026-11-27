@@ -1,5 +1,6 @@
 package com.inisialkey.fieldmonitoring.evaluation.ui.queue
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -27,8 +28,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -48,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -71,6 +78,9 @@ import com.inisialkey.fieldmonitoring.core.ui.components.ReportCard
 import com.inisialkey.fieldmonitoring.core.ui.components.StatusBarScrim
 import com.inisialkey.fieldmonitoring.core.ui.components.UserMessageEffect
 import com.inisialkey.fieldmonitoring.core.ui.components.contentWidth
+import com.inisialkey.fieldmonitoring.core.ui.iconRes
+import com.inisialkey.fieldmonitoring.core.ui.labelRes
+import com.inisialkey.fieldmonitoring.report.domain.Category
 import kotlinx.coroutines.launch
 
 @Composable
@@ -142,6 +152,13 @@ fun EvaluationQueueScreen(
                                 .semantics { heading() },
                         )
                     }
+                    item(key = "filters") {
+                        CategoryFilter(
+                            selected = state.category,
+                            onSelect = viewModel::selectCategory,
+                            modifier = Modifier.contentWidth(),
+                        )
+                    }
                     when {
                         state.loading -> items(3) { SkeletonCard(Modifier.contentWidth().padding(horizontal = 16.dp)) }
                         state.error == LoadError.SESSION_EXPIRED -> item {
@@ -167,7 +184,9 @@ fun EvaluationQueueScreen(
                         state.reports.isEmpty() -> item {
                             EmptyState(
                                 icon = R.drawable.ic_task_alt,
-                                title = stringResource(R.string.queue_empty_message),
+                                title = stringResource(
+                                    if (state.category == null) R.string.queue_empty_message else R.string.queue_empty_filtered,
+                                ),
                                 message = "",
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -202,7 +221,45 @@ fun EvaluationQueueScreen(
     }
 }
 
-private val QUEUE_HEADER_KEYS = setOf<Any>("hero", "title")
+private val QUEUE_HEADER_KEYS = setOf<Any>("hero", "title", "filters")
+
+@Composable
+private fun CategoryFilter(selected: Category?, onSelect: (Category?) -> Unit, modifier: Modifier = Modifier) {
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .selectableGroup(),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item(key = "all") {
+            FilterChip(
+                selected = selected == null,
+                onClick = { onSelect(null) },
+                label = { Text(stringResource(R.string.queue_filter_all)) },
+                leadingIcon = if (selected == null) {
+                    { FilterIcon(R.drawable.ic_check) }
+                } else {
+                    null
+                },
+            )
+        }
+        items(Category.entries, key = { it.name }) { category ->
+            val isSelected = selected == category
+            FilterChip(
+                selected = isSelected,
+                onClick = { onSelect(category) },
+                label = { Text(stringResource(category.labelRes())) },
+                leadingIcon = { FilterIcon(if (isSelected) R.drawable.ic_check else category.iconRes()) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilterIcon(@DrawableRes icon: Int) {
+    Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize))
+}
 
 @Composable
 private fun QueueHero(state: EvaluationQueueUiState, onSignedOut: () -> Unit) {
