@@ -98,10 +98,10 @@ export function finalize(session: Session, reportId: string, attachmentIds: stri
   );
 }
 
-export async function finalizedReport(session: Session): Promise<string> {
+export async function finalizedReport(session: Session, body: unknown = reportBody(session.user.id)): Promise<string> {
   const reportId = randomUUID();
   const photoId = randomUUID();
-  expect((await putReport(session, reportId)).status).toBe(201);
+  expect((await putReport(session, reportId, body)).status).toBe(201);
   expect((await putPhoto(session, reportId, photoId)).status).toBe(201);
   expect((await finalize(session, reportId, [photoId])).status).toBe(200);
   return reportId;

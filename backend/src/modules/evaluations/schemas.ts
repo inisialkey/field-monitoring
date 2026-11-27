@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { categorySchema } from "@/modules/reports/schemas";
 
 export const evaluationSchema = z
   .object({
@@ -11,3 +12,5 @@ export const evaluationSchema = z
   });
 
 export type EvaluationInput = z.infer<typeof evaluationSchema>;
+
+export const queueQuerySchema = z.object({ category: categorySchema.optional() });

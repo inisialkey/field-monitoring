@@ -46,7 +46,7 @@ interface ApiService {
     suspend fun finalize(@Path("id") id: String, @Body body: FinalizeRequest, @Tag owner: ReportOwner): ReportDto
 
     @GET("api/v1/evaluations/queue")
-    suspend fun evaluationQueue(@Query("cursor") cursor: String?): QueuePage
+    suspend fun evaluationQueue(@Query("cursor") cursor: String?, @Query("category") category: Category?): QueuePage
 
     @GET("api/v1/reports/{id}")
     suspend fun report(@Path("id") id: String): ReportDto

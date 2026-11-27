@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.inisialkey.fieldmonitoring.core.UserMessage
 import com.inisialkey.fieldmonitoring.core.UserMessages
 import com.inisialkey.fieldmonitoring.evaluation.data.EvaluationRepository
+import com.inisialkey.fieldmonitoring.report.domain.Category
 import com.inisialkey.fieldmonitoring.report.domain.Report
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.IOException
@@ -26,6 +27,7 @@ data class EvaluationQueueUiState(
     val refreshing: Boolean = false,
     val reports: List<Report> = emptyList(),
     val nextCursor: String? = null,
+    val category: Category? = null,
     val error: LoadError? = null,
 )
 
@@ -50,9 +52,10 @@ class EvaluationQueueViewModel @Inject constructor(
     fun refresh(userInitiated: Boolean = false) {
         loadJob?.cancel()
         _state.update { it.copy(refreshing = userInitiated, loading = it.loading && it.reports.isEmpty()) }
+        val category = _state.value.category
         loadJob = viewModelScope.launch {
             try {
-                val page = repository.queue()
+                val page = repository.queue(category = category)
                 _state.update {
                     it.copy(loading = false, refreshing = false, reports = page.reports, nextCursor = page.nextCursor, error = null)
                 }
@@ -63,12 +66,19 @@ class EvaluationQueueViewModel @Inject constructor(
         }
     }
 
+    fun selectCategory(category: Category?) {
+        if (category == _state.value.category) return
+        _state.update { it.copy(category = category, loading = true, reports = emptyList(), nextCursor = null, error = null) }
+        refresh()
+    }
+
     fun loadMore() {
-        val cursor = _state.value.nextCursor ?: return
+        val current = _state.value
+        val cursor = current.nextCursor ?: return
         if (loadJob?.isActive == true) return
         loadJob = viewModelScope.launch {
             try {
-                val page = repository.queue(cursor)
+                val page = repository.queue(cursor, current.category)
                 _state.update { state ->
                     val known = state.reports.map { it.id }.toSet()
                     state.copy(reports = state.reports + page.reports.filterNot { it.id in known }, nextCursor = page.nextCursor)

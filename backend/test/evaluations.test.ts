@@ -2,13 +2,21 @@ import { describe, expect, it } from "vitest";
 import { GET as queue } from "@/app/api/v1/evaluations/queue/route";
 import { GET as myReports } from "@/app/api/v1/me/reports/route";
 import { POST as evaluate } from "@/app/api/v1/reports/[id]/evaluation/route";
-import { createUser, finalizedReport, jsonRequest, params, signIn, type Session } from "./helpers";
+import { createUser, finalizedReport, jsonRequest, params, reportBody, signIn, type Session } from "./helpers";
 
 function evaluateAs(session: Session, reportId: string, body: unknown) {
   return evaluate(
     jsonRequest("POST", `/api/v1/reports/${reportId}/evaluation`, body, session.accessToken),
     params({ id: reportId }),
   );
+}
+
+function queuePage(session: Session, query = "") {
+  return queue(jsonRequest("GET", `/api/v1/evaluations/queue${query}`, undefined, session.accessToken), undefined);
+}
+
+function reportIn(session: Session, category: string) {
+  return finalizedReport(session, reportBody(session.user.id, { category }));
 }
 
 async function prepare() {
@@ -60,5 +68,61 @@ describe("evaluation", () => {
     const own = await (await myReports(jsonRequest("GET", "/api/v1/me/reports", undefined, rina.accessToken), undefined)).json();
     expect(own[0].status).toBe("EVALUATED");
     expect(own[0].evaluation).toMatchObject({ result: "INVALID", notes: "Foto tidak sesuai lokasi" });
+  });
+});
+
+describe("evaluation queue", () => {
+  it("returns only reports in the requested category", async () => {
+    await createUser("rina", "FIELD_OFFICER");
+    await createUser("andi", "EVALUATOR");
+    const rina = await signIn("rina");
+    const andi = await signIn("andi");
+    const mangrove = await reportIn(rina, "MANGROVE");
+    await reportIn(rina, "BIODIVERSITY");
+
+    const response = await queuePage(andi, "?category=MANGROVE");
+    expect(response.status).toBe(200);
+    const page = await response.json();
+    expect(page.items.map((item: { id: string }) => item.id)).toEqual([mangrove]);
+    expect(page.items[0].category).toBe("MANGROVE");
+    expect(page.nextCursor).toBeNull();
+    expect((await (await queuePage(andi)).json()).items).toHaveLength(2);
+  });
+
+  it("pages through a filtered queue without gaps or duplicates", async () => {
+    await createUser("rina", "FIELD_OFFICER");
+    await createUser("andi", "EVALUATOR");
+    const rina = await signIn("rina");
+    const andi = await signIn("andi");
+    const mangrove: string[] = [];
+    for (let index = 0; index < 24; index++) {
+      if (index % 8 === 0) await reportIn(rina, "OTHER");
+      else mangrove.push(await reportIn(rina, "MANGROVE"));
+    }
+    expect(mangrove).toHaveLength(21);
+
+    const first = await (await queuePage(andi, "?category=MANGROVE")).json();
+    expect(first.items).toHaveLength(20);
+    expect(first.nextCursor).toEqual(expect.any(String));
+    const second = await (
+      await queuePage(andi, `?category=MANGROVE&cursor=${encodeURIComponent(first.nextCursor)}`)
+    ).json();
+    expect(second.nextCursor).toBeNull();
+
+    const items = [...first.items, ...second.items];
+    const ids = items.map((item: { id: string }) => item.id);
+    expect(items.every((item: { category: string }) => item.category === "MANGROVE")).toBe(true);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect([...ids].sort()).toEqual([...mangrove].sort());
+  });
+
+  it.each(["INVALID", "mangrove", ""])("rejects category=%j with 400", async (category) => {
+    await createUser("andi", "EVALUATOR");
+    const andi = await signIn("andi");
+    const response = await queuePage(andi, `?category=${encodeURIComponent(category)}`);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.code).toBe("BAD_REQUEST");
+    expect(body.details[0].field).toBe("category");
   });
 });

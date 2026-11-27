@@ -4,6 +4,7 @@ import { requireRole } from "@/shared/auth";
 import { prisma } from "@/shared/db";
 import { AppError, isUniqueViolation } from "@/shared/errors";
 import { parseId } from "@/shared/http";
+import type { Category } from "@/modules/reports/schemas";
 import type { EvaluationInput } from "./schemas";
 
 const PAGE_SIZE = 20;
@@ -23,13 +24,14 @@ function alreadyEvaluated(): AppError {
   return new AppError("ALREADY_EVALUATED", "This report has already been evaluated");
 }
 
-export async function listQueue(principal: Principal, cursor: string | null) {
+export async function listQueue(principal: Principal, cursor: string | null, category?: Category) {
   requireRole(principal, "EVALUATOR");
   const after = cursor ? decodeCursor(cursor) : null;
   const reports = await prisma.report.findMany({
     where: {
       status: "SUBMITTED",
       finalizedAt: { not: null },
+      ...(category ? { category } : {}),
       ...(after
         ? { OR: [{ finalizedAt: { gt: after.finalizedAt } }, { finalizedAt: after.finalizedAt, id: { gt: after.id } }] }
         : {}),

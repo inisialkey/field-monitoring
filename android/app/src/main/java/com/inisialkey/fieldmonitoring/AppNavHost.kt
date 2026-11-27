@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.inisialkey.fieldmonitoring.auth.domain.Role
 import com.inisialkey.fieldmonitoring.auth.domain.Session
 import com.inisialkey.fieldmonitoring.auth.ui.LoginScreen
@@ -44,7 +45,10 @@ data class ReportDetail(val reportId: String)
 data object Queue
 
 @Serializable
-data class Evaluate(val reportId: String)
+data class Evaluate(
+    val reportId: String,
+    val category: String? = null,
+)
 
 @Composable
 fun AppNavHost(initialSession: Session?, navController: NavHostController = rememberNavController()) {
@@ -83,15 +87,18 @@ fun AppNavHost(initialSession: Session?, navController: NavHostController = reme
         }
         composable<Queue> {
             EvaluationQueueScreen(
-                onOpenReport = { navController.navigateOnce(Evaluate(it)) },
+                onOpenReport = { reportId, category -> navController.navigateOnce(Evaluate(reportId, category?.name)) },
                 onSignIn = { navController.navigateOnce(Login) },
                 onSignedOut = { navController.signOut() },
             )
         }
-        composable<Evaluate> {
+        composable<Evaluate> { entry ->
+            val category = entry.toRoute<Evaluate>().category
             EvaluateScreen(
                 onBack = { navController.popBackStack() },
-                onOpenNext = { next -> navController.navigate(Evaluate(next)) { popUpTo<Evaluate> { inclusive = true } } },
+                onOpenNext = { next ->
+                    navController.navigate(Evaluate(next, category)) { popUpTo<Evaluate> { inclusive = true } }
+                },
                 onSignIn = { navController.navigateOnce(Login) },
             )
         }

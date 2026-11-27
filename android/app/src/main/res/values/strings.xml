@@ -145,6 +145,8 @@
 
     <string name="queue_title">Menunggu Evaluasi</string>
     <string name="queue_empty_message">Tidak ada laporan yang menunggu evaluasi.</string>
+    <string name="queue_empty_filtered">Tidak ada laporan kategori ini yang menunggu evaluasi.</string>
+    <string name="queue_filter_all">Semua</string>
     <string name="loading_reports">Memuat laporan…</string>
     <string name="offline_title">Butuh koneksi internet</string>
     <string name="offline_message">Evaluasi hanya bisa dilakukan saat online.</string>
