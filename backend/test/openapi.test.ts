@@ -110,6 +110,17 @@ describe("OpenAPI contract", () => {
     const andi = await signIn("andi");
     const queue = await queueRoute(jsonRequest("GET", "/api/v1/evaluations/queue", undefined, andi.accessToken), undefined);
     await expectDocumented("get", "/evaluations/queue", queue);
+    const filteredQueue = await queueRoute(
+      jsonRequest("GET", "/api/v1/evaluations/queue?category=MANGROVE", undefined, andi.accessToken),
+      undefined,
+    );
+    expect((await expectDocumented("get", "/evaluations/queue", filteredQueue)).items).toHaveLength(1);
+    const invalidCategory = await queueRoute(
+      jsonRequest("GET", "/api/v1/evaluations/queue?category=FISHING", undefined, andi.accessToken),
+      undefined,
+    );
+    expect(invalidCategory.status).toBe(400);
+    await expectDocumented("get", "/evaluations/queue", invalidCategory);
     const forbiddenQueue = await queueRoute(jsonRequest("GET", "/api/v1/evaluations/queue", undefined, rina.accessToken), undefined);
     await expectDocumented("get", "/evaluations/queue", forbiddenQueue);
 

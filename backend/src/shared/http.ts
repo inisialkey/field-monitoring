@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AppError } from "./errors";
+import { AppError, type ErrorCode } from "./errors";
 
 type Handler<C> = (request: Request, context: C) => Promise<Response>;
 
@@ -28,11 +28,15 @@ export function noContent(): Response {
   return new Response(null, { status: 204 });
 }
 
-export function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
+export function parse<T extends z.ZodType>(
+  schema: T,
+  value: unknown,
+  code: ErrorCode = "VALIDATION_ERROR",
+): z.infer<T> {
   const result = schema.safeParse(value);
   if (!result.success) {
     throw new AppError(
-      "VALIDATION_ERROR",
+      code,
       "Invalid input",
       result.error.issues.map((issue) => ({ field: issue.path.map(String).join("."), issue: issue.message })),
     );

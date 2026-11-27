@@ -345,7 +345,9 @@ paths:
       tags: [Evaluations]
       operationId: listEvaluationQueue
       summary: List reports waiting for evaluation
-      description: Finalized reports without an evaluation, oldest first, 20 per page. Evaluators only.
+      description: >-
+        Finalized reports without an evaluation, oldest first, 20 per page. Evaluators only. Pass `category` to list
+        only one category; keep it the same while following `nextCursor`, and start again without a cursor when it changes.
       parameters:
         - name: cursor
           in: query
@@ -353,6 +355,12 @@ paths:
           description: The `nextCursor` value from the previous page.
           schema:
             type: string
+        - name: category
+          in: query
+          required: false
+          description: Only list reports in this category. An unknown value is rejected with `BAD_REQUEST`.
+          schema:
+            $ref: "#/components/schemas/Category"
       responses:
         "200":
           description: One page of the queue.
@@ -428,7 +436,7 @@ components:
         format: uuid
   responses:
     BadRequest:
-      description: Malformed request, such as invalid JSON, an ID that is not a UUID, or an invalid cursor (`BAD_REQUEST`).
+      description: Malformed request, such as invalid JSON, an ID that is not a UUID, or an invalid cursor or category (`BAD_REQUEST`).
       content:
         application/json:
           schema:

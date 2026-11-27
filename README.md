@@ -111,8 +111,8 @@ cd android
 ./gradlew testDebugUnitTest
 ```
 
-- **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, refresh token rotation and concurrent refresh, revoked accounts, logout, input validation, and the OpenAPI contract.
-- **Android:** report rules, how server responses change the sync status, the owner check on outgoing requests, and single-flight token refresh.
+- **Backend:** idempotent report creation, owner mismatch, finalize with missing photos, single and concurrent second evaluations, the evaluation queue category filter and its paging, refresh token rotation and concurrent refresh, revoked accounts, logout, input validation, and the OpenAPI contract.
+- **Android:** report rules, how server responses change the sync status, the owner check on outgoing requests, single-flight token refresh, and the evaluation queue category filter.
 
 Linters keep the code style consistent: `npm run lint` in `backend` runs ESLint with typescript-eslint, and `./gradlew spotlessCheck lintDebug` in `android` runs ktlint and Android Lint. `./gradlew spotlessApply` fixes Kotlin formatting.
 
@@ -188,7 +188,7 @@ Base path `/api/v1`. Errors have the shape `{ "code": "...", "message": "...", "
 | PUT | `/reports/{id}` | Field Officer | Create a report |
 | PUT | `/reports/{id}/attachments/{attachmentId}` | Field Officer | Upload a photo |
 | POST | `/reports/{id}/finalize` | Field Officer | Mark the report complete |
-| GET | `/evaluations/queue` | Evaluator | Reports waiting for evaluation, oldest first |
+| GET | `/evaluations/queue` | Evaluator | Reports waiting for evaluation, oldest first, optionally filtered by `category` |
 | GET | `/reports/{id}` | Owner or Evaluator | Report detail |
 | POST | `/reports/{id}/evaluation` | Evaluator | Submit the evaluation |
 | GET | `/attachments/{id}/content` | Owner or Evaluator | Download a photo |

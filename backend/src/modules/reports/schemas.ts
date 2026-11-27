@@ -8,20 +8,24 @@ const location = z.object({
   name: z.string().trim().max(200).nullish(),
 });
 
+export const categorySchema = z.enum([
+  "FOREST_REHABILITATION",
+  "MANGROVE",
+  "PEATLAND_RESTORATION",
+  "SOCIAL_FORESTRY",
+  "RENEWABLE_ENERGY",
+  "WASTE_MANAGEMENT",
+  "BIODIVERSITY",
+  "OTHER",
+]);
+
+export type Category = z.infer<typeof categorySchema>;
+
 export const createReportSchema = z
   .object({
     ownerUserId: z.uuid(),
     title: z.string().trim().min(1).max(100),
-    category: z.enum([
-      "FOREST_REHABILITATION",
-      "MANGROVE",
-      "PEATLAND_RESTORATION",
-      "SOCIAL_FORESTRY",
-      "RENEWABLE_ENERGY",
-      "WASTE_MANAGEMENT",
-      "BIODIVERSITY",
-      "OTHER",
-    ]),
+    category: categorySchema,
     description: z.string().trim().min(1).max(2000),
     incidentAt: z.iso.datetime({ offset: true }),
     incidentOffsetMinutes: z.number().int().min(-720).max(840),
