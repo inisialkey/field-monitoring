@@ -15,6 +15,7 @@ import com.inisialkey.fieldmonitoring.evaluation.domain.EvaluationField
 import com.inisialkey.fieldmonitoring.evaluation.domain.EvaluationRules
 import com.inisialkey.fieldmonitoring.evaluation.ui.queue.LoadError
 import com.inisialkey.fieldmonitoring.evaluation.ui.queue.toLoadError
+import com.inisialkey.fieldmonitoring.report.domain.Category
 import com.inisialkey.fieldmonitoring.report.domain.EvaluationResult
 import com.inisialkey.fieldmonitoring.report.domain.FieldError
 import com.inisialkey.fieldmonitoring.report.domain.Report
@@ -55,7 +56,9 @@ class EvaluateViewModel @Inject constructor(
     private val userMessages: UserMessages,
 ) : ViewModel() {
 
-    private val reportId = savedStateHandle.toRoute<Evaluate>().reportId
+    private val route = savedStateHandle.toRoute<Evaluate>()
+    private val reportId = route.reportId
+    private val category = route.category?.let { name -> Category.entries.firstOrNull { it.name == name } }
     val notes = TextFieldState()
     val messages: Flow<UserMessage> = userMessages.messages
 
@@ -131,7 +134,7 @@ class EvaluateViewModel @Inject constructor(
 
     private suspend fun openNext() {
         val next = try {
-            repository.queue().reports.firstOrNull { it.id != reportId }
+            repository.queue(category = category).reports.firstOrNull { it.id != reportId }
         } catch (e: Exception) {
             if (e.toLoadError() == null) throw e
             null

@@ -85,7 +85,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun EvaluationQueueScreen(
-    onOpenReport: (String) -> Unit,
+    onOpenReport: (reportId: String, category: Category?) -> Unit,
     onSignIn: () -> Unit,
     onSignedOut: () -> Unit,
     viewModel: EvaluationQueueViewModel = hiltViewModel(),
@@ -194,7 +194,7 @@ fun EvaluationQueueScreen(
                         else -> items(state.reports, key = { it.id }) { report ->
                             ReportCard(
                                 report,
-                                onClick = { onOpenReport(report.id) },
+                                onClick = { onOpenReport(report.id, state.category) },
                                 showReporter = true,
                                 modifier = Modifier
                                     .animateItem()
